@@ -36,6 +36,10 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
+List<int>? initRunMode = [0, 0];
+List<int>? initRtc = [0, 0, 0, 0, 0, 1, 0];
+List<int>? initCpuStatus = [0, 0];
+
 class _MyHomePageState extends State<MyHomePage> {
   int index = -1;
   final flutterReactiveBle = FlutterReactiveBle();
@@ -46,6 +50,16 @@ class _MyHomePageState extends State<MyHomePage> {
   bool _scanning = false;
   bool _connected = false;
   String _logTexts = "";
+
+  final Uuid cpuModuleserviceUuid =
+      Uuid.parse('388a4ae7-f276-4321-b227-6cd344f0bb7d');
+  final Uuid cpuStatusCharacteristicUuid =
+      Uuid.parse('6e884d38-1559-4fed-beb6-2c2166df9a00');
+  final Uuid rtcCharacteristicUuid =
+      Uuid.parse('6e884d38-1559-4fed-beb6-2c2166df9a02');
+  final Uuid runModeCharacteristicUuid =
+      Uuid.parse('6e884d38-1559-4fed-beb6-2c2166df9a03');
+  bool isConnecting = false;
 
   @override
   void initState() {
@@ -173,11 +187,28 @@ class _MyHomePageState extends State<MyHomePage> {
       switch (event.connectionState) {
         case DeviceConnectionState.connecting:
           {
+            isConnecting = true;
             _logTexts = "${_logTexts}Connecting to $id\n";
             break;
           }
         case DeviceConnectionState.connected:
           {
+            isConnecting = true;
+            initCpuStatus = await flutterReactiveBle.readCharacteristic(
+                QualifiedCharacteristic(
+                    characteristicId: cpuStatusCharacteristicUuid,
+                    serviceId: cpuModuleserviceUuid,
+                    deviceId: _foundBleUARTDevices[index].id));
+            initRtc = await flutterReactiveBle.readCharacteristic(
+                QualifiedCharacteristic(
+                    characteristicId: rtcCharacteristicUuid,
+                    serviceId: cpuModuleserviceUuid,
+                    deviceId: _foundBleUARTDevices[index].id));
+            initRunMode = await flutterReactiveBle.readCharacteristic(
+                QualifiedCharacteristic(
+                    characteristicId: runModeCharacteristicUuid,
+                    serviceId: cpuModuleserviceUuid,
+                    deviceId: _foundBleUARTDevices[index].id));
             Navigator.pushAndRemoveUntil(
               context,
               MaterialPageRoute(
@@ -185,6 +216,9 @@ class _MyHomePageState extends State<MyHomePage> {
                   device: _foundBleUARTDevices[index],
                   flutterReactiveBle: flutterReactiveBle,
                   connection: _connection,
+                  initCpuStatus: initCpuStatus,
+                  initRtc: initRtc,
+                  initRunMode: initRunMode,
                 ),
               ),
               (Route<dynamic> route) => false,
@@ -257,61 +291,75 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
               ),
               Container(
-                  margin: const EdgeInsets.all(20.0),
-                  height: 300,
-                  child: ListView.builder(
-                      itemCount: _foundBleUARTDevices.length,
-                      itemBuilder: (context, index) => Card(
-                              child: ListTile(
-                            dense: true,
-                            tileColor: selectedIndex == index
-                                ? const Color.fromRGBO(88, 201, 223, 1)
-                                : Colors.transparent,
-                            title: GestureDetector(
-                                behavior: HitTestBehavior.translucent,
-                                onTap: () {
-                                  _stopScan();
-                                  setState(() => selectedIndex = index);
-                                  this.index = index;
-                                },
-                                child: Text(
-                                    //"${_foundBleUARTDevices[index].name} rssi: ${_foundBleUARTDevices[index].rssi}")),
-                                    _foundBleUARTDevices[index].name)),
-                            trailing:
-                                Icon(_foundBleUARTDevices[index].rssi >= -67
-                                    ? Icons.signal_cellular_alt
-                                    : _foundBleUARTDevices[index].rssi >= -77
-                                        ? Icons.signal_cellular_alt_2_bar
-                                        : _foundBleUARTDevices[index].rssi > -90
-                                            ? Icons.signal_cellular_alt_1_bar
-                                            : Icons.signal_cellular_0_bar),
-                          )))),
-              Visibility(
-                maintainSize: true,
-                maintainAnimation: true,
-                maintainState: true,
-                visible: (index > -1) ? true : false,
-                child: Padding(
-                  padding: const EdgeInsets.all(50.0),
-                  child: SizedBox(
-                    width: 150,
-                    height: 60,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        (!_connected && _scanning) ||
-                                (!_scanning && _connected) ||
-                                (index == -1)
-                            ? () {}
-                            : onConnectDevice(index);
-                      },
-                      child: const Text(
-                        'Connect',
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 18.0),
-                      ),
+                margin: const EdgeInsets.all(20.0),
+                height: 300,
+                child: ListView.builder(
+                  itemCount: _foundBleUARTDevices.length,
+                  itemBuilder: (context, index) => Card(
+                    child: ListTile(
+                      dense: true,
+                      tileColor: selectedIndex == index
+                          ? const Color.fromRGBO(88, 201, 223, 1)
+                          : Colors.transparent,
+                      title: GestureDetector(
+                          behavior: HitTestBehavior.translucent,
+                          onTap: () {
+                            _stopScan();
+                            setState(() => selectedIndex = index);
+                            this.index = index;
+                          },
+                          child: Text(
+                              //"${_foundBleUARTDevices[index].name} rssi: ${_foundBleUARTDevices[index].rssi}")),
+                              _foundBleUARTDevices[index].name)),
+                      trailing: Icon(_foundBleUARTDevices[index].rssi >= -67
+                          ? Icons.signal_cellular_alt
+                          : _foundBleUARTDevices[index].rssi >= -77
+                              ? Icons.signal_cellular_alt_2_bar
+                              : _foundBleUARTDevices[index].rssi > -90
+                                  ? Icons.signal_cellular_alt_1_bar
+                                  : Icons.signal_cellular_0_bar),
                     ),
                   ),
                 ),
+              ),
+              Row(
+                children: [
+                  Visibility(
+                    maintainSize: true,
+                    maintainAnimation: true,
+                    maintainState: true,
+                    visible: (index > -1) ? true : false,
+                    child: Padding(
+                      padding: const EdgeInsets.only(
+                          left: 115.0, top: 50.0, bottom: 50.0),
+                      child: SizedBox(
+                        width: 150,
+                        height: 60,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            (!_connected && _scanning) ||
+                                    (!_scanning && _connected) ||
+                                    (index == -1)
+                                ? () {}
+                                : onConnectDevice(index);
+                          },
+                          child: const Text(
+                            'Connect',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 18.0),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Visibility(
+                    visible: isConnecting,
+                    child: const Padding(
+                      padding: EdgeInsets.only(left: 10.0),
+                      child: CircularProgressIndicator(),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
