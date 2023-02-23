@@ -1,63 +1,44 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
-import 'package:osv2/main.dart';
+import 'package:intl/intl.dart';
+import 'package:osv2/settings.dart';
+import 'my_flutter_app_icons.dart';
 
 class TurnOn extends StatefulWidget {
   final DiscoveredDevice device;
   final FlutterReactiveBle flutterReactiveBle;
   final StreamSubscription<ConnectionStateUpdate>? connection;
-  final List<int>? initRunMode;
-  final List<int>? initRtc;
-  final List<int>? initCpuStatus;
+  final List<int>? runModeData;
+  final List<int>? rtcData;
+  final List<int>? cpuStatusData;
+  final List<int>? timersData;
 
-  const TurnOn({
-    Key? key,
-    required this.device,
-    required this.flutterReactiveBle,
-    required this.connection,
-    this.initRunMode,
-    this.initRtc,
-    this.initCpuStatus,
-  }) : super(key: key);
+  const TurnOn(
+      {Key? key,
+      required this.device,
+      required this.flutterReactiveBle,
+      required this.connection,
+      this.runModeData,
+      this.rtcData,
+      this.cpuStatusData,
+      this.timersData})
+      : super(key: key);
 
   @override
   State<TurnOn> createState() => _TurnOnState();
 }
 
 List<bool> isSelected = [false, false, false];
-List<String> monthString = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December"
-];
-List<String> dayString = [
-  "Sunday",
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday"
-];
 
 Color ozoneColor = const Color.fromRGBO(53, 62, 71, 1);
 Color chlorineColor = const Color.fromRGBO(53, 62, 71, 1);
 Color probeColor = const Color.fromRGBO(53, 62, 71, 1);
 
 bool checkBit(int value, int bit) => (value & (1 << bit)) != 0;
-const int CPU_STATUS_CH_DETECT_BIT = 2;
-const int CPU_STATUS_OZ_DETECT_BIT = 3;
-const int CPU_STATUS_PR_DETECT_BIT = 1;
+//const int CPU_STATUS_CH_DETECT_BIT = 2;
+//const int CPU_STATUS_OZ_DETECT_BIT = 3;
+//const int CPU_STATUS_PR_DETECT_BIT = 1;
 
 class _TurnOnState extends State<TurnOn> {
   final Uuid cpuModuleserviceUuid =
@@ -69,8 +50,10 @@ class _TurnOnState extends State<TurnOn> {
       Uuid.parse('6e884d38-1559-4fed-beb6-2c2166df9a02');
   final Uuid runModeCharacteristicUuid =
       Uuid.parse('6e884d38-1559-4fed-beb6-2c2166df9a03');
-  final Uuid writeCharacteristicUuid =
+  final Uuid commandCharacteristicUuid =
       Uuid.parse('6e884d38-1559-4fed-beb6-2c2166df9a06');
+  final Uuid timersCharacteristicUuid =
+      Uuid.parse('6e884d38-1559-4fed-beb6-2c2166df9a07');
 
   Stream<List<int>>? cpuStatusSubscriptionStream;
   Stream<List<int>>? rtcSubscriptionStream;
@@ -78,10 +61,43 @@ class _TurnOnState extends State<TurnOn> {
   List<int>? runModeData = [0, 0];
   List<int>? rtcData = [0, 0, 0, 0, 0, 1, 0];
   List<int>? cpuStatusData = [0, 0];
-  // List<int>? initRunMode = [0, 0];
-  // List<int>? initRtc = [0, 0, 0, 0, 0, 1, 0];
-  // List<int>? initCpuStatus = [0, 0];
+  List<int>? timersData = [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ];
   int runMode = 0;
+  DateTime timer1Start = DateTime.now();
+  DateTime timer1End = DateTime.now();
+  Duration timer1Duration = const Duration(minutes: 0);
+  final today = DateTime.now();
+
+  void _initData() {
+    cpuStatusData = widget.cpuStatusData;
+    rtcData = widget.rtcData;
+    runModeData = widget.runModeData;
+    timersData = widget.timersData;
+    timer1Start = DateTime(today.year, today.month, today.day,
+        widget.timersData![0], widget.timersData![1]);
+    timer1Duration = Duration(
+        minutes: (widget.timersData![2] << 8) | (widget.timersData![3]));
+    timer1End = timer1Start.add(timer1Duration);
+  }
 
   void _initStream() {
     cpuStatusSubscriptionStream = widget.flutterReactiveBle
@@ -103,30 +119,11 @@ class _TurnOnState extends State<TurnOn> {
     setState(() {});
   }
 
-  void _initVariables() async {
-    initCpuStatus = await widget.flutterReactiveBle.readCharacteristic(
-        QualifiedCharacteristic(
-            characteristicId: cpuStatusCharacteristicUuid,
-            serviceId: cpuModuleserviceUuid,
-            deviceId: widget.device.id));
-    initRtc = await widget.flutterReactiveBle.readCharacteristic(
-        QualifiedCharacteristic(
-            characteristicId: rtcCharacteristicUuid,
-            serviceId: cpuModuleserviceUuid,
-            deviceId: widget.device.id));
-    initRunMode = await widget.flutterReactiveBle.readCharacteristic(
-        QualifiedCharacteristic(
-            characteristicId: runModeCharacteristicUuid,
-            serviceId: cpuModuleserviceUuid,
-            deviceId: widget.device.id));
-    setState(() {});
-  }
-
   @override
   void initState() {
     super.initState();
-    //_initVariables();
     setState(() {});
+    _initData();
     _initStream();
   }
 
@@ -141,21 +138,35 @@ class _TurnOnState extends State<TurnOn> {
         ),
         actions: <Widget>[
           IconButton(
-            icon: const Icon(Icons.remove_circle),
-            onPressed: () => {
-              widget.connection!.cancel(),
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const MyHomePage(
-                    title: 'Ozone Swim',
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => Settings(
+                      device: widget.device,
+                      flutterReactiveBle: widget.flutterReactiveBle,
+                      connection: widget.connection,
+                      cpuStatusData: cpuStatusData,
+                      rtcData: rtcData,
+                      runModeData: runModeData,
+                      timersData: timersData,
+                    ),
                   ),
-                ),
-                (Route<dynamic> route) => false,
-              )
-            },
-          ),
-          IconButton(onPressed: () {}, icon: const Icon(Icons.settings)),
+                ).then((_) async {
+                  timersData = await widget.flutterReactiveBle
+                      .readCharacteristic(QualifiedCharacteristic(
+                          characteristicId: timersCharacteristicUuid,
+                          serviceId: cpuModuleserviceUuid,
+                          deviceId: widget.device.id));
+                  timer1Start = DateTime(today.year, today.month, today.day,
+                      timersData![0], timersData![1]);
+                  timer1Duration = Duration(
+                      minutes: (timersData![2] << 8) | (timersData![3]));
+                  timer1End = timer1Start.add(timer1Duration);
+                  setState(() {});
+                });
+              },
+              icon: const Icon(Icons.settings)),
         ],
       ),
       body: StreamBuilder<List<int>>(
@@ -163,8 +174,6 @@ class _TurnOnState extends State<TurnOn> {
           builder: (runModecontext, runModesnapshot) {
             if (runModesnapshot.hasData) {
               runModeData = runModesnapshot.data;
-            } else {
-              runModeData = initRunMode;
             }
             runMode = runModeData![0] & 0xF;
             if (runMode == 0) {
@@ -182,8 +191,6 @@ class _TurnOnState extends State<TurnOn> {
                     builder: (cpuStatusContext, cpuStatusSnapshot) {
                       if (cpuStatusSnapshot.hasData) {
                         cpuStatusData = cpuStatusSnapshot.data;
-                      } else {
-                        cpuStatusData = initCpuStatus;
                       }
                       ozoneColor = checkBit(cpuStatusData![0], 3)
                           ? const Color.fromRGBO(88, 201, 223, 1)
@@ -200,9 +207,10 @@ class _TurnOnState extends State<TurnOn> {
                           Padding(
                             padding: const EdgeInsets.only(top: 20.0),
                             child: IconButton(
+                                iconSize: 40.0,
                                 onPressed: () {},
-                                icon: Image.asset(
-                                  'lib/assets/icon_ozone_2_20px.png',
+                                icon: Icon(
+                                  CustomIcons.icono3v2,
                                   color: ozoneColor,
                                 )),
                           ),
@@ -210,17 +218,18 @@ class _TurnOnState extends State<TurnOn> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Padding(
-                                padding: const EdgeInsets.only(left: 10.0),
-                                child: IconButton(
-                                    onPressed: () {},
-                                    icon: Image.asset(
-                                      'lib/assets/icon_chlorine_1_20px.png',
-                                      color: chlorineColor,
-                                    )),
-                              ),
+                                  padding: const EdgeInsets.only(left: 15.0),
+                                  child: IconButton(
+                                      iconSize: 40.0,
+                                      onPressed: () {},
+                                      icon: Icon(
+                                        CustomIcons.iconcl2,
+                                        color: chlorineColor,
+                                      ))),
                               Padding(
-                                padding: const EdgeInsets.only(right: 10.0),
+                                padding: const EdgeInsets.only(right: 15.0),
                                 child: IconButton(
+                                    iconSize: 40.0,
                                     onPressed: () {},
                                     icon: Icon(
                                       Icons.remove_red_eye,
@@ -253,46 +262,31 @@ class _TurnOnState extends State<TurnOn> {
                             builder: (rtcContext, rtcSnapshot) {
                               if (rtcSnapshot.hasData) {
                                 rtcData = rtcSnapshot.data;
-                              } else {
-                                rtcData = initRtc;
                               }
-                              int rtcHours;
-                              String rtcAmpm;
-                              if (rtcData![2] == 0) {
-                                rtcHours = 12;
-                                rtcAmpm = 'am';
-                              } else if (rtcData![2] < 13) {
-                                rtcHours = rtcData![2];
-                                rtcAmpm = 'am';
-                                if (rtcHours == 12) {
-                                  rtcAmpm = 'pm';
-                                }
-                              } else {
-                                rtcHours = rtcData![2] - 12;
-                                rtcAmpm = 'pm';
-                              }
-                              int rtcMinutes = rtcData![1];
-                              int rtcDayOfWeek = rtcData![3];
-                              int rtcDay = rtcData![4];
-                              int rtcMonth = rtcData![5];
+                              DateTime rtcDateTime = DateTime(
+                                  rtcData![6] + 2000,
+                                  rtcData![5],
+                                  rtcData![4],
+                                  rtcData![2],
+                                  rtcData![1]);
 
                               return Column(
                                 children: [
                                   Text(
-                                    dayString[rtcDayOfWeek],
+                                    DateFormat('EEEE').format(rtcDateTime),
                                     style: const TextStyle(
                                         fontSize: 30.0,
                                         color: Color.fromRGBO(53, 62, 71, 1)),
                                   ),
                                   Text(
-                                    '$rtcHours:${rtcMinutes.toString().padLeft(2, '0')}$rtcAmpm',
+                                    '${DateFormat('hh:mm').format(rtcDateTime)}${DateFormat('a').format(rtcDateTime).toLowerCase()}',
                                     style: const TextStyle(
                                         fontSize: 60.0,
                                         fontWeight: FontWeight.bold,
                                         color: Color.fromRGBO(53, 62, 71, 1)),
                                   ),
                                   Text(
-                                    '$rtcDay ${monthString[rtcMonth - 1]}',
+                                    DateFormat('dd MMMM').format(rtcDateTime),
                                     style: const TextStyle(
                                         fontSize: 30.0,
                                         color: Color.fromRGBO(53, 62, 71, 1)),
@@ -308,8 +302,8 @@ class _TurnOnState extends State<TurnOn> {
                 ]),
                 Padding(
                   padding: const EdgeInsets.only(top: 15.0),
-                  child: Visibility(
-                    visible: (runMode == 1),
+                  child: Opacity(
+                    opacity: (runMode == 1) ? 1.0 : 0.5,
                     child: Column(
                       children: [
                         Row(
@@ -318,14 +312,15 @@ class _TurnOnState extends State<TurnOn> {
                             Padding(
                               padding: const EdgeInsets.only(left: 40.0),
                               child: Column(
-                                children: const [
-                                  Text('Start Time',
+                                children: [
+                                  const Text('Start Time',
                                       style: TextStyle(
                                           fontSize: 20.0,
                                           color:
                                               Color.fromRGBO(53, 62, 71, 1))),
-                                  Text('10:00am',
-                                      style: TextStyle(
+                                  Text(
+                                      '${DateFormat('hh:mm').format(timer1Start)}${DateFormat('a').format(timer1Start).toLowerCase()}',
+                                      style: const TextStyle(
                                           fontWeight: FontWeight.bold,
                                           fontSize: 20.0,
                                           color:
@@ -336,14 +331,15 @@ class _TurnOnState extends State<TurnOn> {
                             Padding(
                               padding: const EdgeInsets.only(right: 40.0),
                               child: Column(
-                                children: const [
-                                  Text('Stop Time',
+                                children: [
+                                  const Text('Stop Time',
                                       style: TextStyle(
                                           fontSize: 20.0,
                                           color:
                                               Color.fromRGBO(53, 62, 71, 1))),
-                                  Text('06:00pm',
-                                      style: TextStyle(
+                                  Text(
+                                      '${DateFormat('hh:mm').format(timer1End)}${DateFormat('a').format(timer1End).toLowerCase()}',
+                                      style: const TextStyle(
                                           fontWeight: FontWeight.bold,
                                           fontSize: 20.0,
                                           color:
@@ -384,15 +380,20 @@ class _TurnOnState extends State<TurnOn> {
                         borderColor: const Color.fromRGBO(53, 62, 71, 1),
                         isSelected: isSelected,
                         onPressed: (int buttonSelected) async {
-                          final writeCharacteristic = QualifiedCharacteristic(
+                          final commandCharacteristic = QualifiedCharacteristic(
                               serviceId: cpuModuleserviceUuid,
-                              characteristicId: writeCharacteristicUuid,
+                              characteristicId: commandCharacteristicUuid,
                               deviceId: widget.device.id);
-                          await widget.flutterReactiveBle
-                              .writeCharacteristicWithResponse(
-                                  writeCharacteristic,
-                                  value: [(buttonSelected + 100)]);
-                          await Future.delayed(const Duration(seconds: 1));
+                          final commandResponse = await widget
+                              .flutterReactiveBle
+                              .readCharacteristic(commandCharacteristic);
+                          if (commandResponse[0] == 0) {
+                            await widget.flutterReactiveBle
+                                .writeCharacteristicWithResponse(
+                                    commandCharacteristic,
+                                    value: [(buttonSelected + 100)]);
+                          }
+                          // await Future.delayed(const Duration(seconds: 1));
                         },
                         fillColor: const Color.fromRGBO(53, 62, 71, 1),
                         selectedBorderColor:

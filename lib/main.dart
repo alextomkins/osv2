@@ -39,6 +39,7 @@ class MyHomePage extends StatefulWidget {
 List<int>? initRunMode = [0, 0];
 List<int>? initRtc = [0, 0, 0, 0, 0, 1, 0];
 List<int>? initCpuStatus = [0, 0];
+List<int>? initTimers = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
 class _MyHomePageState extends State<MyHomePage> {
   int index = -1;
@@ -59,6 +60,8 @@ class _MyHomePageState extends State<MyHomePage> {
       Uuid.parse('6e884d38-1559-4fed-beb6-2c2166df9a02');
   final Uuid runModeCharacteristicUuid =
       Uuid.parse('6e884d38-1559-4fed-beb6-2c2166df9a03');
+  final Uuid timersCharacteristicUuid =
+      Uuid.parse('6e884d38-1559-4fed-beb6-2c2166df9a07');
   bool isConnecting = false;
 
   @override
@@ -209,6 +212,11 @@ class _MyHomePageState extends State<MyHomePage> {
                     characteristicId: runModeCharacteristicUuid,
                     serviceId: cpuModuleserviceUuid,
                     deviceId: _foundBleUARTDevices[index].id));
+            initTimers = await flutterReactiveBle.readCharacteristic(
+                QualifiedCharacteristic(
+                    characteristicId: timersCharacteristicUuid,
+                    serviceId: cpuModuleserviceUuid,
+                    deviceId: _foundBleUARTDevices[index].id));
             Navigator.pushAndRemoveUntil(
               context,
               MaterialPageRoute(
@@ -216,9 +224,10 @@ class _MyHomePageState extends State<MyHomePage> {
                   device: _foundBleUARTDevices[index],
                   flutterReactiveBle: flutterReactiveBle,
                   connection: _connection,
-                  initCpuStatus: initCpuStatus,
-                  initRtc: initRtc,
-                  initRunMode: initRunMode,
+                  cpuStatusData: initCpuStatus,
+                  rtcData: initRtc,
+                  runModeData: initRunMode,
+                  timersData: initTimers,
                 ),
               ),
               (Route<dynamic> route) => false,
@@ -251,14 +260,6 @@ class _MyHomePageState extends State<MyHomePage> {
             widget.title,
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
-          actions: <Widget>[
-            IconButton(
-              icon: _connected
-                  ? const Icon(Icons.remove_circle)
-                  : const Icon(Icons.remove_circle_outline),
-              onPressed: _connected ? _disconnect : () {},
-            ),
-          ],
         ),
         body: SingleChildScrollView(
           child: Column(
