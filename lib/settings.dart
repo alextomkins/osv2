@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
+import 'package:osv2/dev_settings.dart';
 import 'package:osv2/main.dart';
 import 'package:intl/intl.dart';
 
@@ -95,11 +96,7 @@ class _SettingsState extends State<Settings> {
 
   Future<void> _initData() async {
     rtcData = widget.rtcData;
-    timersData = await widget.flutterReactiveBle.readCharacteristic(
-        QualifiedCharacteristic(
-            characteristicId: timersCharacteristicUuid,
-            serviceId: cpuModuleserviceUuid,
-            deviceId: widget.device.id));
+    timersData = widget.timersData;
     timer1Start = DateTime(today.year, today.month, today.day,
         widget.timersData![0], widget.timersData![1]);
     timer1Duration = Duration(
@@ -284,7 +281,22 @@ class _SettingsState extends State<Settings> {
                               (Route<dynamic> route) => false,
                             )
                           },
-                      child: const Text('Disconnect'))
+                      child: const Text('Disconnect')),
+                  TextButton(
+                      onPressed: () => {
+                            widget.connection!.cancel(),
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => DevSettings(
+                                  device: widget.device,
+                                  flutterReactiveBle: widget.flutterReactiveBle,
+                                  connection: widget.connection,
+                                ),
+                              ),
+                            )
+                          },
+                      child: const Text('Developer')),
                 ],
               ),
             ),

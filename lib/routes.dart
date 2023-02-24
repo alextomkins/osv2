@@ -36,9 +36,6 @@ Color chlorineColor = const Color.fromRGBO(53, 62, 71, 1);
 Color probeColor = const Color.fromRGBO(53, 62, 71, 1);
 
 bool checkBit(int value, int bit) => (value & (1 << bit)) != 0;
-//const int CPU_STATUS_CH_DETECT_BIT = 2;
-//const int CPU_STATUS_OZ_DETECT_BIT = 3;
-//const int CPU_STATUS_PR_DETECT_BIT = 1;
 
 class _TurnOnState extends State<TurnOn> {
   final Uuid cpuModuleserviceUuid =
@@ -86,6 +83,7 @@ class _TurnOnState extends State<TurnOn> {
   DateTime timer1End = DateTime.now();
   Duration timer1Duration = const Duration(minutes: 0);
   final today = DateTime.now();
+  double timer1Progress = 0.0;
 
   void _initData() {
     cpuStatusData = widget.cpuStatusData;
@@ -241,133 +239,149 @@ class _TurnOnState extends State<TurnOn> {
                         ],
                       );
                     }),
-                Stack(children: [
-                  const Center(
-                    child: SizedBox(
-                      width: 300,
-                      height: 300,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 6.0,
-                        color: Color.fromRGBO(88, 201, 223, 1),
-                      ),
-                    ),
-                  ),
-                  Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(70.0),
-                      child: Column(
-                        children: [
-                          StreamBuilder<List<int>>(
-                            stream: rtcSubscriptionStream,
-                            builder: (rtcContext, rtcSnapshot) {
-                              if (rtcSnapshot.hasData) {
-                                rtcData = rtcSnapshot.data;
-                              }
-                              DateTime rtcDateTime = DateTime(
-                                  rtcData![6] + 2000,
-                                  rtcData![5],
-                                  rtcData![4],
-                                  rtcData![2],
-                                  rtcData![1]);
+                StreamBuilder<List<int>>(
+                  stream: rtcSubscriptionStream,
+                  builder: (rtcContext, rtcSnapshot) {
+                    if (rtcSnapshot.hasData) {
+                      rtcData = rtcSnapshot.data;
+                    }
+                    DateTime rtcDateTime = DateTime(rtcData![6] + 2000,
+                        rtcData![5], rtcData![4], rtcData![2], rtcData![1]);
+                    if (timer1Start.compareTo(rtcDateTime) < 0 &&
+                        rtcDateTime.compareTo(timer1End) < 0) {
+                      Duration currentProgress =
+                          rtcDateTime.difference(timer1Start);
+                      timer1Progress =
+                          currentProgress.inSeconds / timer1Duration.inSeconds;
+                    } else {
+                      timer1Progress = 0.0;
+                    }
 
-                              return Column(
-                                children: [
-                                  Text(
-                                    DateFormat('EEEE').format(rtcDateTime),
-                                    style: const TextStyle(
-                                        fontSize: 30.0,
-                                        color: Color.fromRGBO(53, 62, 71, 1)),
-                                  ),
-                                  Text(
-                                    '${DateFormat('hh:mm').format(rtcDateTime)}${DateFormat('a').format(rtcDateTime).toLowerCase()}',
-                                    style: const TextStyle(
-                                        fontSize: 60.0,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color.fromRGBO(53, 62, 71, 1)),
-                                  ),
-                                  Text(
-                                    DateFormat('dd MMMM').format(rtcDateTime),
-                                    style: const TextStyle(
-                                        fontSize: 30.0,
-                                        color: Color.fromRGBO(53, 62, 71, 1)),
-                                  ),
-                                ],
-                              );
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ]),
-                Padding(
-                  padding: const EdgeInsets.only(top: 15.0),
-                  child: Opacity(
-                    opacity: (runMode == 1) ? 1.0 : 0.5,
-                    child: Column(
+                    return Column(
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        Stack(
                           children: [
-                            Padding(
-                              padding: const EdgeInsets.only(left: 40.0),
-                              child: Column(
-                                children: [
-                                  const Text('Start Time',
-                                      style: TextStyle(
-                                          fontSize: 20.0,
-                                          color:
-                                              Color.fromRGBO(53, 62, 71, 1))),
-                                  Text(
-                                      '${DateFormat('hh:mm').format(timer1Start)}${DateFormat('a').format(timer1Start).toLowerCase()}',
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 20.0,
-                                          color:
-                                              Color.fromRGBO(88, 201, 223, 1))),
-                                ],
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(right: 40.0),
-                              child: Column(
-                                children: [
-                                  const Text('Stop Time',
-                                      style: TextStyle(
-                                          fontSize: 20.0,
-                                          color:
-                                              Color.fromRGBO(53, 62, 71, 1))),
-                                  Text(
-                                      '${DateFormat('hh:mm').format(timer1End)}${DateFormat('a').format(timer1End).toLowerCase()}',
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 20.0,
-                                          color:
-                                              Color.fromRGBO(88, 201, 223, 1))),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                        const Padding(
-                          padding: EdgeInsets.only(top: 20.0),
-                          child: SizedBox(
-                              width: 250.0,
-                              height: 35.0,
-                              child: ClipRRect(
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(20.0)),
-                                child: LinearProgressIndicator(
-                                  value: 0.2,
-                                  backgroundColor:
-                                      Color.fromRGBO(53, 62, 71, 200),
+                            const Center(
+                              child: SizedBox(
+                                width: 300,
+                                height: 300,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 6.0,
                                   color: Color.fromRGBO(88, 201, 223, 1),
                                 ),
-                              )),
+                              ),
+                            ),
+                            Center(
+                                child: Padding(
+                                    padding: const EdgeInsets.all(70.0),
+                                    child: Column(children: [
+                                      Column(
+                                        children: [
+                                          Text(
+                                            DateFormat('EEEE')
+                                                .format(rtcDateTime),
+                                            style: const TextStyle(
+                                                fontSize: 30.0,
+                                                color: Color.fromRGBO(
+                                                    53, 62, 71, 1)),
+                                          ),
+                                          Text(
+                                            '${DateFormat('h:mm').format(rtcDateTime)}${DateFormat('a').format(rtcDateTime).toLowerCase()}',
+                                            style: const TextStyle(
+                                                fontSize: 60.0,
+                                                fontWeight: FontWeight.bold,
+                                                color: Color.fromRGBO(
+                                                    53, 62, 71, 1)),
+                                          ),
+                                          Text(
+                                            DateFormat('dd MMMM')
+                                                .format(rtcDateTime),
+                                            style: const TextStyle(
+                                                fontSize: 30.0,
+                                                color: Color.fromRGBO(
+                                                    53, 62, 71, 1)),
+                                          ),
+                                        ],
+                                      )
+                                    ])))
+                          ],
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 15.0),
+                          child: Opacity(
+                            opacity: (runMode == 1) ? 1.0 : 0.5,
+                            child: Column(
+                              children: [
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Padding(
+                                      padding:
+                                          const EdgeInsets.only(left: 40.0),
+                                      child: Column(
+                                        children: [
+                                          const Text('Start Time',
+                                              style: TextStyle(
+                                                  fontSize: 20.0,
+                                                  color: Color.fromRGBO(
+                                                      53, 62, 71, 1))),
+                                          Text(
+                                              '${DateFormat('hh:mm').format(timer1Start)}${DateFormat('a').format(timer1Start).toLowerCase()}',
+                                              style: const TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 20.0,
+                                                  color: Color.fromRGBO(
+                                                      88, 201, 223, 1))),
+                                        ],
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding:
+                                          const EdgeInsets.only(right: 40.0),
+                                      child: Column(
+                                        children: [
+                                          const Text('Stop Time',
+                                              style: TextStyle(
+                                                  fontSize: 20.0,
+                                                  color: Color.fromRGBO(
+                                                      53, 62, 71, 1))),
+                                          Text(
+                                              '${DateFormat('hh:mm').format(timer1End)}${DateFormat('a').format(timer1End).toLowerCase()}',
+                                              style: const TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 20.0,
+                                                  color: Color.fromRGBO(
+                                                      88, 201, 223, 1))),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 20.0),
+                                  child: SizedBox(
+                                      width: 250.0,
+                                      height: 35.0,
+                                      child: ClipRRect(
+                                        borderRadius: const BorderRadius.all(
+                                            Radius.circular(20.0)),
+                                        child: LinearProgressIndicator(
+                                          value: timer1Progress,
+                                          backgroundColor: const Color.fromRGBO(
+                                              53, 62, 71, 200),
+                                          color: const Color.fromRGBO(
+                                              88, 201, 223, 1),
+                                        ),
+                                      )),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                       ],
-                    ),
-                  ),
+                    );
+                  },
                 ),
                 Expanded(
                   child: Padding(

@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:intl/intl.dart';
-import 'package:osv2/main.dart';
 
 class ChangeTimer extends StatefulWidget {
   final DiscoveredDevice device;
@@ -22,15 +21,7 @@ class ChangeTimer extends StatefulWidget {
   State<ChangeTimer> createState() => _ChangeTimerState();
 }
 
-List<String> dayString = [
-  "Sunday",
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday"
-];
+List<String> dayString = ["Sun", "Mon", "Tues", "Wed", "Thur", "Fri", "Sat"];
 
 Color ozoneColor = const Color.fromRGBO(53, 62, 71, 1);
 Color chlorineColor = const Color.fromRGBO(53, 62, 71, 1);
@@ -66,6 +57,7 @@ class _ChangeTimerState extends State<ChangeTimer> {
   final today = DateTime.now();
   double runTime = 0;
   TimeOfDay? selectedTime;
+  List<int> dayOfWeekList = [0, 0, 0, 0, 0, 0, 0];
 
   void _initTimers() {
     timer1Start = DateTime(today.year, today.month, today.day,
@@ -220,97 +212,20 @@ class _ChangeTimerState extends State<ChangeTimer> {
                     padding: const EdgeInsets.only(top: 10.0),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        ElevatedButton(
-                          onPressed: () {},
-                          style: ButtonStyle(
-                            shape:
-                                MaterialStateProperty.all(const CircleBorder()),
-                            padding: MaterialStateProperty.all(
-                                const EdgeInsets.all(20)),
-                            backgroundColor: MaterialStateProperty.all(
-                                Color.fromRGBO(53, 62, 71, 1)),
-                          ),
-                          child: const Text('Mon'),
-                        ),
-                        ElevatedButton(
-                          onPressed: () {},
-                          style: ButtonStyle(
-                            shape:
-                                MaterialStateProperty.all(const CircleBorder()),
-                            padding: MaterialStateProperty.all(
-                                const EdgeInsets.all(20)),
-                            backgroundColor: MaterialStateProperty.all(
-                                Color.fromRGBO(53, 62, 71, 1)),
-                          ),
-                          child: const Text('Tues'),
-                        ),
-                        ElevatedButton(
-                          onPressed: () {},
-                          style: ButtonStyle(
-                            shape:
-                                MaterialStateProperty.all(const CircleBorder()),
-                            padding: MaterialStateProperty.all(
-                                const EdgeInsets.all(20)),
-                            backgroundColor: MaterialStateProperty.all(
-                                Color.fromRGBO(53, 62, 71, 1)),
-                          ),
-                          child: const Text('Wed'),
-                        ),
-                        ElevatedButton(
-                          onPressed: () {},
-                          style: ButtonStyle(
-                            shape:
-                                MaterialStateProperty.all(const CircleBorder()),
-                            padding: MaterialStateProperty.all(
-                                const EdgeInsets.all(20)),
-                            backgroundColor: MaterialStateProperty.all(
-                                Color.fromRGBO(53, 62, 71, 1)),
-                          ),
-                          child: const Text('Thurs'),
-                        ),
+                      children: const [
+                        DayOfWeekButton(dayOfWeekIndex: 1),
+                        DayOfWeekButton(dayOfWeekIndex: 2),
+                        DayOfWeekButton(dayOfWeekIndex: 3),
+                        DayOfWeekButton(dayOfWeekIndex: 4),
                       ],
                     ),
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      ElevatedButton(
-                        onPressed: () {},
-                        style: ButtonStyle(
-                          shape:
-                              MaterialStateProperty.all(const CircleBorder()),
-                          padding: MaterialStateProperty.all(
-                              const EdgeInsets.all(20)),
-                          backgroundColor: MaterialStateProperty.all(
-                              Color.fromRGBO(53, 62, 71, 1)),
-                        ),
-                        child: const Text('Fri'),
-                      ),
-                      ElevatedButton(
-                        onPressed: () {},
-                        style: ButtonStyle(
-                          shape:
-                              MaterialStateProperty.all(const CircleBorder()),
-                          padding: MaterialStateProperty.all(
-                              const EdgeInsets.all(20)),
-                          backgroundColor: MaterialStateProperty.all(
-                              Color.fromRGBO(53, 62, 71, 1)),
-                        ),
-                        child: const Text('Sat'),
-                      ),
-                      ElevatedButton(
-                        onPressed: () {},
-                        style: ButtonStyle(
-                          shape:
-                              MaterialStateProperty.all(const CircleBorder()),
-                          padding: MaterialStateProperty.all(
-                              const EdgeInsets.all(20)),
-                          backgroundColor: MaterialStateProperty.all(
-                              Color.fromRGBO(53, 62, 71, 1)),
-                        ),
-                        child: const Text('Sun'),
-                      ),
+                    children: const [
+                      DayOfWeekButton(dayOfWeekIndex: 5),
+                      DayOfWeekButton(dayOfWeekIndex: 6),
+                      DayOfWeekButton(dayOfWeekIndex: 0),
                     ],
                   ),
                   Padding(
@@ -353,5 +268,43 @@ class _ChangeTimerState extends State<ChangeTimer> {
             ),
           ],
         ));
+  }
+}
+
+class DayOfWeekButton extends StatefulWidget {
+  final int dayOfWeekIndex;
+
+  const DayOfWeekButton({super.key, required this.dayOfWeekIndex});
+
+  @override
+  State<DayOfWeekButton> createState() => _DayOfWeekButtonState();
+}
+
+class _DayOfWeekButtonState extends State<DayOfWeekButton> {
+  bool isOn = false;
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      onPressed: () {
+        isOn == true ? isOn = false : isOn = true;
+        setState(() {});
+      },
+      style: ButtonStyle(
+        shape: MaterialStateProperty.all(
+          const CircleBorder(),
+        ),
+        padding: MaterialStateProperty.all(
+          const EdgeInsets.all(20),
+        ),
+        backgroundColor: isOn == true
+            ? MaterialStateProperty.all(const Color.fromRGBO(88, 200, 223, 1))
+            : MaterialStateProperty.all(
+                const Color.fromRGBO(53, 62, 71, 1),
+              ),
+      ),
+      child: Text(
+        dayString[widget.dayOfWeekIndex],
+      ),
+    );
   }
 }
