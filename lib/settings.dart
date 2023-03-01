@@ -48,8 +48,10 @@ Color probeColor = const Color.fromRGBO(53, 62, 71, 1);
 bool checkBit(int value, int bit) => (value & (1 << bit)) != 0;
 
 class _SettingsState extends State<Settings> {
-  final Uuid cpuModuleserviceUuid =
+  final Uuid cpuModuleServiceUuid =
       Uuid.parse('388a4ae7-f276-4321-b227-6cd344f0bb7d');
+  final Uuid deviceInformationServiceUuid =
+      Uuid.parse('180a'); // 0000180a-0000-1000-8000-00805f9b34fb
 
   final Uuid cpuStatusCharacteristicUuid =
       Uuid.parse('6e884d38-1559-4fed-beb6-2c2166df9a00');
@@ -61,6 +63,13 @@ class _SettingsState extends State<Settings> {
       Uuid.parse('6e884d38-1559-4fed-beb6-2c2166df9a06');
   final Uuid timersCharacteristicUuid =
       Uuid.parse('6e884d38-1559-4fed-beb6-2c2166df9a07');
+  final Uuid cpuDeviceInfoCharacteristicUuid =
+      Uuid.parse('6e884d38-1559-4fed-beb6-2c2166df9a04');
+  final Uuid manufacturerNameCharacteristicUuid = Uuid.parse('2a29');
+  final Uuid modelNumberCharacteristicUuid = Uuid.parse('2a24');
+  final Uuid serielNumberCharacteristicUuid = Uuid.parse('2a25');
+  final Uuid hardwareRevisionCharacteristicUuid = Uuid.parse('2a27');
+  final Uuid firmwareRevisionCharacteristicUuid = Uuid.parse('2a26');
 
   Stream<List<int>>? cpuStatusSubscriptionStream;
   Stream<List<int>>? rtcSubscriptionStream;
@@ -88,6 +97,12 @@ class _SettingsState extends State<Settings> {
     0,
     0
   ];
+  List<int>? manufacturerNameData = [];
+  List<int>? modelNumberData = [];
+  List<int>? serielNumberData = [];
+  List<int>? hardwareRevisionData = [];
+  List<int>? firmwareRevisionData = [];
+  List<int>? cpuDeviceInfoData = [];
   int runMode = 0;
   DateTime timer1Start = DateTime.now();
   DateTime timer1End = DateTime.now();
@@ -109,17 +124,17 @@ class _SettingsState extends State<Settings> {
     cpuStatusSubscriptionStream = widget.flutterReactiveBle
         .subscribeToCharacteristic(QualifiedCharacteristic(
             characteristicId: cpuStatusCharacteristicUuid,
-            serviceId: cpuModuleserviceUuid,
+            serviceId: cpuModuleServiceUuid,
             deviceId: widget.device.id));
     rtcSubscriptionStream = widget.flutterReactiveBle.subscribeToCharacteristic(
         QualifiedCharacteristic(
             characteristicId: rtcCharacteristicUuid,
-            serviceId: cpuModuleserviceUuid,
+            serviceId: cpuModuleServiceUuid,
             deviceId: widget.device.id));
     runModeSubscriptionStream = widget.flutterReactiveBle
         .subscribeToCharacteristic(QualifiedCharacteristic(
             characteristicId: runModeCharacteristicUuid,
-            serviceId: cpuModuleserviceUuid,
+            serviceId: cpuModuleServiceUuid,
             deviceId: widget.device.id));
 
     setState(() {});
@@ -170,7 +185,7 @@ class _SettingsState extends State<Settings> {
                               if (selectedTime != null) {
                                 final commandCharacteristic =
                                     QualifiedCharacteristic(
-                                        serviceId: cpuModuleserviceUuid,
+                                        serviceId: cpuModuleServiceUuid,
                                         characteristicId:
                                             commandCharacteristicUuid,
                                         deviceId: widget.device.id);
@@ -208,7 +223,7 @@ class _SettingsState extends State<Settings> {
                               if (selectedDate != null) {
                                 final commandCharacteristic =
                                     QualifiedCharacteristic(
-                                        serviceId: cpuModuleserviceUuid,
+                                        serviceId: cpuModuleServiceUuid,
                                         characteristicId:
                                             commandCharacteristicUuid,
                                         deviceId: widget.device.id);
@@ -255,7 +270,7 @@ class _SettingsState extends State<Settings> {
                           timersData = await widget.flutterReactiveBle
                               .readCharacteristic(QualifiedCharacteristic(
                                   characteristicId: timersCharacteristicUuid,
-                                  serviceId: cpuModuleserviceUuid,
+                                  serviceId: cpuModuleServiceUuid,
                                   deviceId: widget.device.id));
                           timer1Start = DateTime(today.year, today.month,
                               today.day, timersData![0], timersData![1]);
@@ -283,8 +298,46 @@ class _SettingsState extends State<Settings> {
                           },
                       child: const Text('Disconnect')),
                   TextButton(
-                      onPressed: () => {
-                            widget.connection!.cancel(),
+                      onPressed: () async => {
+                            manufacturerNameData = await widget
+                                .flutterReactiveBle
+                                .readCharacteristic(QualifiedCharacteristic(
+                                    characteristicId:
+                                        manufacturerNameCharacteristicUuid,
+                                    serviceId: deviceInformationServiceUuid,
+                                    deviceId: widget.device.id)),
+                            modelNumberData = await widget.flutterReactiveBle
+                                .readCharacteristic(QualifiedCharacteristic(
+                                    characteristicId:
+                                        modelNumberCharacteristicUuid,
+                                    serviceId: deviceInformationServiceUuid,
+                                    deviceId: widget.device.id)),
+                            serielNumberData = await widget.flutterReactiveBle
+                                .readCharacteristic(QualifiedCharacteristic(
+                                    characteristicId:
+                                        serielNumberCharacteristicUuid,
+                                    serviceId: deviceInformationServiceUuid,
+                                    deviceId: widget.device.id)),
+                            hardwareRevisionData = await widget
+                                .flutterReactiveBle
+                                .readCharacteristic(QualifiedCharacteristic(
+                                    characteristicId:
+                                        hardwareRevisionCharacteristicUuid,
+                                    serviceId: deviceInformationServiceUuid,
+                                    deviceId: widget.device.id)),
+                            firmwareRevisionData = await widget
+                                .flutterReactiveBle
+                                .readCharacteristic(QualifiedCharacteristic(
+                                    characteristicId:
+                                        firmwareRevisionCharacteristicUuid,
+                                    serviceId: deviceInformationServiceUuid,
+                                    deviceId: widget.device.id)),
+                            cpuDeviceInfoData = await widget.flutterReactiveBle
+                                .readCharacteristic(QualifiedCharacteristic(
+                                    characteristicId:
+                                        cpuDeviceInfoCharacteristicUuid,
+                                    serviceId: cpuModuleServiceUuid,
+                                    deviceId: widget.device.id)),
                             Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -292,6 +345,12 @@ class _SettingsState extends State<Settings> {
                                   device: widget.device,
                                   flutterReactiveBle: widget.flutterReactiveBle,
                                   connection: widget.connection,
+                                  manufacturerNameData: manufacturerNameData,
+                                  modelNumberData: modelNumberData,
+                                  serielNumberData: serielNumberData,
+                                  hardwareRevisionData: hardwareRevisionData,
+                                  firmwareRevisionData: firmwareRevisionData,
+                                  cpuDeviceInfoData: cpuDeviceInfoData,
                                 ),
                               ),
                             )

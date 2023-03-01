@@ -30,7 +30,7 @@ Color probeColor = const Color.fromRGBO(53, 62, 71, 1);
 bool checkBit(int value, int bit) => (value & (1 << bit)) != 0;
 
 class _ChangeTimerState extends State<ChangeTimer> {
-  final Uuid cpuModuleserviceUuid =
+  final Uuid cpuModuleServiceUuid =
       Uuid.parse('388a4ae7-f276-4321-b227-6cd344f0bb7d');
 
   final Uuid cpuStatusCharacteristicUuid =
@@ -75,17 +75,17 @@ class _ChangeTimerState extends State<ChangeTimer> {
     cpuStatusSubscriptionStream = widget.flutterReactiveBle
         .subscribeToCharacteristic(QualifiedCharacteristic(
             characteristicId: cpuStatusCharacteristicUuid,
-            serviceId: cpuModuleserviceUuid,
+            serviceId: cpuModuleServiceUuid,
             deviceId: widget.device.id));
     rtcSubscriptionStream = widget.flutterReactiveBle.subscribeToCharacteristic(
         QualifiedCharacteristic(
             characteristicId: rtcCharacteristicUuid,
-            serviceId: cpuModuleserviceUuid,
+            serviceId: cpuModuleServiceUuid,
             deviceId: widget.device.id));
     runModeSubscriptionStream = widget.flutterReactiveBle
         .subscribeToCharacteristic(QualifiedCharacteristic(
             characteristicId: runModeCharacteristicUuid,
-            serviceId: cpuModuleserviceUuid,
+            serviceId: cpuModuleServiceUuid,
             deviceId: widget.device.id));
 
     setState(() {});
@@ -234,7 +234,7 @@ class _ChangeTimerState extends State<ChangeTimer> {
                       onPressed: () async {
                         if (selectedTime != null) {
                           final commandCharacteristic = QualifiedCharacteristic(
-                              serviceId: cpuModuleserviceUuid,
+                              serviceId: cpuModuleServiceUuid,
                               characteristicId: commandCharacteristicUuid,
                               deviceId: widget.device.id);
                           final commandResponse = await widget

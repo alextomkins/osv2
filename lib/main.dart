@@ -52,7 +52,7 @@ class _MyHomePageState extends State<MyHomePage> {
   bool _connected = false;
   String _logTexts = "";
 
-  final Uuid cpuModuleserviceUuid =
+  final Uuid cpuModuleServiceUuid =
       Uuid.parse('388a4ae7-f276-4321-b227-6cd344f0bb7d');
   final Uuid cpuStatusCharacteristicUuid =
       Uuid.parse('6e884d38-1559-4fed-beb6-2c2166df9a00');
@@ -200,22 +200,22 @@ class _MyHomePageState extends State<MyHomePage> {
             initCpuStatus = await flutterReactiveBle.readCharacteristic(
                 QualifiedCharacteristic(
                     characteristicId: cpuStatusCharacteristicUuid,
-                    serviceId: cpuModuleserviceUuid,
+                    serviceId: cpuModuleServiceUuid,
                     deviceId: _foundBleUARTDevices[index].id));
             initRtc = await flutterReactiveBle.readCharacteristic(
                 QualifiedCharacteristic(
                     characteristicId: rtcCharacteristicUuid,
-                    serviceId: cpuModuleserviceUuid,
+                    serviceId: cpuModuleServiceUuid,
                     deviceId: _foundBleUARTDevices[index].id));
             initRunMode = await flutterReactiveBle.readCharacteristic(
                 QualifiedCharacteristic(
                     characteristicId: runModeCharacteristicUuid,
-                    serviceId: cpuModuleserviceUuid,
+                    serviceId: cpuModuleServiceUuid,
                     deviceId: _foundBleUARTDevices[index].id));
             initTimers = await flutterReactiveBle.readCharacteristic(
                 QualifiedCharacteristic(
                     characteristicId: timersCharacteristicUuid,
-                    serviceId: cpuModuleserviceUuid,
+                    serviceId: cpuModuleServiceUuid,
                     deviceId: _foundBleUARTDevices[index].id));
             Navigator.pushAndRemoveUntil(
               context,

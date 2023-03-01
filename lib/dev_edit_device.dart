@@ -1,31 +1,21 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
-import 'package:package_info_plus/package_info_plus.dart';
-import 'package:share_plus/share_plus.dart';
 
 class DevSettings extends StatefulWidget {
   final DiscoveredDevice device;
   final FlutterReactiveBle flutterReactiveBle;
   final StreamSubscription<ConnectionStateUpdate>? connection;
-  final List<int>? manufacturerNameData;
   final List<int>? modelNumberData;
   final List<int>? cpuDeviceInfoData;
-  final List<int>? serielNumberData;
-  final List<int>? hardwareRevisionData;
-  final List<int>? firmwareRevisionData;
 
   const DevSettings({
     Key? key,
     required this.device,
     required this.flutterReactiveBle,
     required this.connection,
-    required this.manufacturerNameData,
     required this.modelNumberData,
     required this.cpuDeviceInfoData,
-    required this.serielNumberData,
-    required this.hardwareRevisionData,
-    required this.firmwareRevisionData,
   }) : super(key: key);
 
   @override
@@ -43,11 +33,7 @@ class _DevSettingsState extends State<DevSettings> {
   final Uuid cpuDeviceInfoCharacteristicUuid =
       Uuid.parse('6e884d38-1559-4fed-beb6-2c2166df9a04');
 
-  List<int>? manufacturerNameData = [];
   List<int>? modelNumberData = [];
-  List<int>? serielNumberData = [];
-  List<int>? hardwareRevisionData = [];
-  List<int>? firmwareRevisionData = [];
   List<int>? cpuDeviceInfoData = [0, 0];
   String softwareRevision = '';
   String? transformerSizeValue;
@@ -73,14 +59,8 @@ class _DevSettingsState extends State<DevSettings> {
   ];
 
   Future<void> _initData() async {
-    PackageInfo packageInfo = await PackageInfo.fromPlatform();
-    softwareRevision = packageInfo.version;
-    manufacturerNameData = widget.manufacturerNameData;
     modelNumberData = widget.modelNumberData;
     cpuDeviceInfoData = widget.cpuDeviceInfoData;
-    serielNumberData = widget.serielNumberData;
-    hardwareRevisionData = widget.hardwareRevisionData;
-    firmwareRevisionData = widget.firmwareRevisionData;
     transformerSizeValue = transformerSize[cpuDeviceInfoData![0]];
     cellModelValue = cellModel[cpuDeviceInfoData![1]];
     textController =
@@ -97,18 +77,6 @@ class _DevSettingsState extends State<DevSettings> {
 
   @override
   Widget build(BuildContext context) {
-    String otherParameters =
-        '''Manufacturer Name: ${String.fromCharCodes(manufacturerNameData!)}
-Model Number: ${String.fromCharCodes(modelNumberData!)}
-Serial Number: ${String.fromCharCodes(serielNumberData!)}
-Hardware Revision: ${String.fromCharCodes(hardwareRevisionData!)}
-Firmware Revision: ${String.fromCharCodes(firmwareRevisionData!)}
-Software Revision: $softwareRevision
-Transformer Size: ${transformerSize[cpuDeviceInfoData![0]]}
-Cell Model: ${cellModel[cpuDeviceInfoData![1]]}
-CH Module ID: 
-CH Module SW Version: 
-CH Module HW Version: ''';
     return Scaffold(
         resizeToAvoidBottomInset: false,
         appBar: AppBar(
@@ -178,7 +146,6 @@ CH Module HW Version: ''';
                         ),
                       ),
                     ),
-
                     const Text('Cell Model'),
                     Container(
                       width: 250,
@@ -249,28 +216,6 @@ CH Module HW Version: ''';
                               style: TextStyle(
                                   fontSize: 26.0,
                                   fontWeight: FontWeight.bold))),
-                    ),
-                    ////
-                    const Padding(
-                      padding: EdgeInsets.all(8.0),
-                      child: Text('Other Parameters',
-                          style: TextStyle(
-                              fontSize: 25.0, fontWeight: FontWeight.bold)),
-                    ),
-                    Text(otherParameters),
-                    SizedBox(
-                      width: 100.0,
-                      height: 45.0,
-                      child: ElevatedButton(
-                          onPressed: () {
-                            Share.share(otherParameters,
-                                subject: 'Other Parameters');
-                          },
-                          child: const Text(
-                            'Send',
-                            style: TextStyle(
-                                fontSize: 26.0, fontWeight: FontWeight.bold),
-                          )),
                     ),
                   ],
                 ),
