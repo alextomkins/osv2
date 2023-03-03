@@ -3,11 +3,37 @@ import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:intl/intl.dart';
 import 'package:osv2/settings.dart';
+import 'package:osv2/settings_v2.dart';
 import 'package:osv2/uuid_constants.dart';
 import 'custom_dialogs.dart';
 import 'my_flutter_app_icons.dart';
 
-class TurnOn extends StatefulWidget {
+final List<String> monthString = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December"
+];
+
+final List<String> dayOfWeekString = [
+  'Sunday',
+  'Monday',
+  'Tuesday',
+  'Wednesday',
+  'Thursday',
+  'Friday',
+  'Saturday',
+];
+
+class MainScreen extends StatefulWidget {
   final DiscoveredDevice device;
   final FlutterReactiveBle flutterReactiveBle;
   final StreamSubscription<ConnectionStateUpdate>? connection;
@@ -16,7 +42,7 @@ class TurnOn extends StatefulWidget {
   final List<int>? cpuStatusData;
   final List<int>? timersData;
 
-  const TurnOn(
+  const MainScreen(
       {Key? key,
       required this.device,
       required this.flutterReactiveBle,
@@ -28,7 +54,7 @@ class TurnOn extends StatefulWidget {
       : super(key: key);
 
   @override
-  State<TurnOn> createState() => _TurnOnState();
+  State<MainScreen> createState() => _MainScreenState();
 }
 
 List<bool> isSelected = [false, false, false];
@@ -39,7 +65,7 @@ Color probeColor = const Color.fromRGBO(53, 62, 71, 1);
 
 bool checkBit(int value, int bit) => (value & (1 << bit)) != 0;
 
-class _TurnOnState extends State<TurnOn> {
+class _MainScreenState extends State<MainScreen> {
   Stream<List<int>>? cpuStatusSubscriptionStream;
   Stream<List<int>>? rtcSubscriptionStream;
   Stream<List<int>>? runModeSubscriptionStream;
@@ -130,7 +156,7 @@ class _TurnOnState extends State<TurnOn> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => Settings(
+                    builder: (context) => Settings_v2(
                       device: widget.device,
                       flutterReactiveBle: widget.flutterReactiveBle,
                       connection: widget.connection,
@@ -327,16 +353,25 @@ class _TurnOnState extends State<TurnOn> {
                     if (rtcSnapshot.hasData) {
                       rtcData = rtcSnapshot.data;
                     }
-                    DateTime rtcDateTime = DateTime(rtcData![6] + 2000,
-                        rtcData![5], rtcData![4], rtcData![2], rtcData![1]);
-                    if (timer1Start.compareTo(rtcDateTime) < 0 &&
-                        rtcDateTime.compareTo(timer1End) < 0) {
-                      Duration currentProgress =
-                          rtcDateTime.difference(timer1Start);
-                      timer1Progress =
-                          currentProgress.inSeconds / timer1Duration.inSeconds;
+                    String rtcMonth = monthString[rtcData![5] - 1];
+                    int rtcDay = rtcData![4];
+                    String rtcDayOfWeek = dayOfWeekString[rtcData![3]];
+                    int rtc24Hour = rtcData![2];
+                    int rtc12Hour = rtc24Hour;
+                    String rtcAmPm = 'am';
+                    int rtcMinutes = rtcData![1];
+                    if (rtc24Hour == 0) {
+                      rtc12Hour = 12;
+                      rtcAmPm = 'am';
+                    } else if (rtc24Hour < 13) {
+                      rtc12Hour = rtc24Hour;
+                      rtcAmPm = 'am';
+                      if (rtc12Hour == 12) {
+                        rtcAmPm = 'pm';
+                      }
                     } else {
-                      timer1Progress = 0.0;
+                      rtc12Hour = rtc24Hour - 12;
+                      rtcAmPm = 'pm';
                     }
 
                     return Column(
@@ -360,15 +395,14 @@ class _TurnOnState extends State<TurnOn> {
                                       Column(
                                         children: [
                                           Text(
-                                            DateFormat('EEEE')
-                                                .format(rtcDateTime),
+                                            rtcDayOfWeek,
                                             style: const TextStyle(
                                                 fontSize: 30.0,
                                                 color: Color.fromRGBO(
                                                     53, 62, 71, 1)),
                                           ),
                                           Text(
-                                            '${DateFormat('h:mm').format(rtcDateTime)}${DateFormat('a').format(rtcDateTime).toLowerCase()}',
+                                            '$rtc12Hour:${rtcMinutes.toString().padLeft(2, '0')}$rtcAmPm',
                                             style: const TextStyle(
                                                 fontSize: 60.0,
                                                 fontWeight: FontWeight.bold,
@@ -376,8 +410,7 @@ class _TurnOnState extends State<TurnOn> {
                                                     53, 62, 71, 1)),
                                           ),
                                           Text(
-                                            DateFormat('dd MMMM')
-                                                .format(rtcDateTime),
+                                            '$rtcDay $rtcMonth',
                                             style: const TextStyle(
                                                 fontSize: 30.0,
                                                 color: Color.fromRGBO(

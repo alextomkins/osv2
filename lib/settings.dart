@@ -8,6 +8,31 @@ import 'package:osv2/uuid_constants.dart';
 
 import 'change_timer.dart';
 
+final List<String> monthString = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December"
+];
+
+final List<String> dayOfWeekString = [
+  'Sunday',
+  'Monday',
+  'Tuesday',
+  'Wednesday',
+  'Thursday',
+  'Friday',
+  'Saturday',
+];
+
 class Settings extends StatefulWidget {
   final DiscoveredDevice device;
   final FlutterReactiveBle flutterReactiveBle;
@@ -206,8 +231,28 @@ class _SettingsState extends State<Settings> {
                     if (rtcSnapshot.hasData) {
                       rtcData = rtcSnapshot.data;
                     }
-                    DateTime rtcDateTime = DateTime(rtcData![6] + 2000,
-                        rtcData![5], rtcData![4], rtcData![2], rtcData![1]);
+                    String rtcMonth = monthString[rtcData![5] - 1];
+                    int rtcDay = rtcData![4];
+                    String rtcDayOfWeek = dayOfWeekString[rtcData![3]];
+                    int rtc24Hour = rtcData![2];
+                    int rtc12Hour = rtc24Hour;
+                    String rtcAmPm = 'am';
+                    int rtcMinutes = rtcData![1];
+                    if (rtc24Hour == 0) {
+                      rtc12Hour = 12;
+                      rtcAmPm = 'am';
+                    } else if (rtc24Hour < 13) {
+                      rtc12Hour = rtc24Hour;
+                      rtcAmPm = 'am';
+                      if (rtc12Hour == 12) {
+                        rtcAmPm = 'pm';
+                      }
+                    } else {
+                      rtc12Hour = rtc24Hour - 12;
+                      rtcAmPm = 'pm';
+                    }
+                    // DateTime rtcDateTime = DateTime(rtcData![6] + 2000,
+                    //     rtcData![5], rtcData![4], rtcData![2], rtcData![1]);
 
                     return Column(
                       children: [
@@ -241,7 +286,8 @@ class _SettingsState extends State<Settings> {
                             }
                           },
                           child: Text(
-                            'Time\n${DateFormat('hh:mm').format(rtcDateTime)}${DateFormat('a').format(rtcDateTime).toLowerCase()}',
+                            //'Time\n${DateFormat('hh:mm').format(rtcDateTime)}${DateFormat('a').format(rtcDateTime).toLowerCase()}'
+                            'test',
                             style: const TextStyle(
                                 fontSize: 30.0,
                                 color: Color.fromRGBO(53, 62, 71, 1)),
@@ -279,7 +325,8 @@ class _SettingsState extends State<Settings> {
                             }
                           },
                           child: Text(
-                            'Date\n${DateFormat('dd MMMM y').format(rtcDateTime)}',
+                            //'Date\n${DateFormat('dd MMMM y').format(rtcDateTime)}'
+                            'test',
                             style: const TextStyle(
                                 fontSize: 30.0,
                                 color: Color.fromRGBO(53, 62, 71, 1)),

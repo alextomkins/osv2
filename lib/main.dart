@@ -4,7 +4,7 @@ import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:osv2/utils.dart';
 import 'package:osv2/uuid_constants.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'routes.dart';
+import 'package:osv2/main_screen.dart';
 import 'dart:io' show Platform;
 import 'package:google_fonts/google_fonts.dart';
 
@@ -210,7 +210,7 @@ class _MyHomePageState extends State<MyHomePage> {
             Navigator.pushAndRemoveUntil(
               context,
               MaterialPageRoute(
-                builder: (context) => TurnOn(
+                builder: (context) => MainScreen(
                   device: _foundBleUARTDevices[index],
                   flutterReactiveBle: flutterReactiveBle,
                   connection: _connection,
