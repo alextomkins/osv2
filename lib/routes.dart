@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:intl/intl.dart';
 import 'package:osv2/settings.dart';
+import 'package:osv2/uuid_constants.dart';
+import 'custom_dialogs.dart';
 import 'my_flutter_app_icons.dart';
 
 class TurnOn extends StatefulWidget {
@@ -38,20 +40,6 @@ Color probeColor = const Color.fromRGBO(53, 62, 71, 1);
 bool checkBit(int value, int bit) => (value & (1 << bit)) != 0;
 
 class _TurnOnState extends State<TurnOn> {
-  final Uuid cpuModuleServiceUuid =
-      Uuid.parse('388a4ae7-f276-4321-b227-6cd344f0bb7d');
-
-  final Uuid cpuStatusCharacteristicUuid =
-      Uuid.parse('6e884d38-1559-4fed-beb6-2c2166df9a00');
-  final Uuid rtcCharacteristicUuid =
-      Uuid.parse('6e884d38-1559-4fed-beb6-2c2166df9a02');
-  final Uuid runModeCharacteristicUuid =
-      Uuid.parse('6e884d38-1559-4fed-beb6-2c2166df9a03');
-  final Uuid commandCharacteristicUuid =
-      Uuid.parse('6e884d38-1559-4fed-beb6-2c2166df9a06');
-  final Uuid timersCharacteristicUuid =
-      Uuid.parse('6e884d38-1559-4fed-beb6-2c2166df9a07');
-
   Stream<List<int>>? cpuStatusSubscriptionStream;
   Stream<List<int>>? rtcSubscriptionStream;
   Stream<List<int>>? runModeSubscriptionStream;
@@ -84,6 +72,8 @@ class _TurnOnState extends State<TurnOn> {
   Duration timer1Duration = const Duration(minutes: 0);
   final today = DateTime.now();
   double timer1Progress = 0.0;
+  Timer? timer;
+  bool inTimer = false;
 
   void _initData() {
     cpuStatusData = widget.cpuStatusData;
@@ -206,7 +196,34 @@ class _TurnOnState extends State<TurnOn> {
                             padding: const EdgeInsets.only(top: 20.0),
                             child: IconButton(
                                 iconSize: 40.0,
-                                onPressed: () {},
+                                onPressed: () async {
+                                  List<int> ozValuesData = await widget
+                                      .flutterReactiveBle
+                                      .readCharacteristic(
+                                          QualifiedCharacteristic(
+                                              characteristicId:
+                                                  ozValuesCharacteristicUuid,
+                                              serviceId:
+                                                  modbusDevicesServiceUuid,
+                                              deviceId: widget.device.id));
+                                  int setpoint = ozValuesData[0];
+                                  int averageCurrent = (ozValuesData[1] << 8) |
+                                      (ozValuesData[2]);
+                                  int temperature = (ozValuesData[3] << 8) |
+                                      (ozValuesData[4]);
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) {
+                                      return OzoneInfoDialog(
+                                          setpoint: setpoint,
+                                          averageCurrent: averageCurrent,
+                                          temperature: temperature,
+                                          device: widget.device,
+                                          flutterReactiveBle:
+                                              widget.flutterReactiveBle);
+                                    },
+                                  );
+                                },
                                 icon: Icon(
                                   CustomIcons.icono3v2,
                                   color: ozoneColor,
@@ -219,7 +236,39 @@ class _TurnOnState extends State<TurnOn> {
                                   padding: const EdgeInsets.only(left: 15.0),
                                   child: IconButton(
                                       iconSize: 40.0,
-                                      onPressed: () {},
+                                      onPressed: () async {
+                                        List<int> chValuesData = await widget
+                                            .flutterReactiveBle
+                                            .readCharacteristic(
+                                                QualifiedCharacteristic(
+                                                    characteristicId:
+                                                        chValuesCharacteristicUuid,
+                                                    serviceId:
+                                                        modbusDevicesServiceUuid,
+                                                    deviceId:
+                                                        widget.device.id));
+                                        int averageCurrent =
+                                            (chValuesData[0] << 8) |
+                                                (chValuesData[1]);
+                                        int maxCurrent =
+                                            (chValuesData[2] << 8) |
+                                                (chValuesData[3]);
+                                        int setpoint = chValuesData[4];
+                                        int period = (chValuesData[5] << 8) |
+                                            (chValuesData[6]);
+                                        int temperature =
+                                            (chValuesData[7] << 8) |
+                                                (chValuesData[8]);
+                                        ChlorineInfoDialog(
+                                            setpoint: setpoint,
+                                            averageCurrent: averageCurrent,
+                                            temperature: temperature,
+                                            device: widget.device,
+                                            flutterReactiveBle:
+                                                widget.flutterReactiveBle,
+                                            maxCurrent: maxCurrent,
+                                            period: period);
+                                      },
                                       icon: Icon(
                                         CustomIcons.iconcl2,
                                         color: chlorineColor,
@@ -228,7 +277,40 @@ class _TurnOnState extends State<TurnOn> {
                                 padding: const EdgeInsets.only(right: 15.0),
                                 child: IconButton(
                                     iconSize: 40.0,
-                                    onPressed: () {},
+                                    onPressed: () async {
+                                      List<int> prValuesData = await widget
+                                          .flutterReactiveBle
+                                          .readCharacteristic(
+                                              QualifiedCharacteristic(
+                                                  characteristicId:
+                                                      prValuesCharacteristicUuid,
+                                                  serviceId:
+                                                      modbusDevicesServiceUuid,
+                                                  deviceId: widget.device.id));
+                                      int flowRate = (prValuesData[0] << 8) |
+                                          (prValuesData[1]);
+                                      int waterTemperature =
+                                          (prValuesData[2] << 8) |
+                                              (prValuesData[3]);
+                                      int phValue = (prValuesData[4] << 8) |
+                                          (prValuesData[5]);
+                                      int orpValue = (prValuesData[6] << 8) |
+                                          (prValuesData[7]);
+                                      await showDialog(
+                                        context: context,
+                                        builder: (context) {
+                                          return ProbesInfoDialog(
+                                              device: widget.device,
+                                              flutterReactiveBle:
+                                                  widget.flutterReactiveBle,
+                                              flowRate: flowRate,
+                                              waterTemperature:
+                                                  waterTemperature,
+                                              phValue: phValue,
+                                              orpValue: orpValue);
+                                        },
+                                      );
+                                    },
                                     icon: Icon(
                                       Icons.remove_red_eye,
                                       color: probeColor,

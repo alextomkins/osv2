@@ -4,7 +4,7 @@ import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:share_plus/share_plus.dart';
 
-class DevSettings extends StatefulWidget {
+class DevInfo extends StatefulWidget {
   final DiscoveredDevice device;
   final FlutterReactiveBle flutterReactiveBle;
   final StreamSubscription<ConnectionStateUpdate>? connection;
@@ -14,8 +14,9 @@ class DevSettings extends StatefulWidget {
   final List<int>? serielNumberData;
   final List<int>? hardwareRevisionData;
   final List<int>? firmwareRevisionData;
+  final List<String> modulesInfo;
 
-  const DevSettings({
+  const DevInfo({
     Key? key,
     required this.device,
     required this.flutterReactiveBle,
@@ -26,29 +27,21 @@ class DevSettings extends StatefulWidget {
     required this.serielNumberData,
     required this.hardwareRevisionData,
     required this.firmwareRevisionData,
+    required this.modulesInfo,
   }) : super(key: key);
 
   @override
-  State<DevSettings> createState() => _DevSettingsState();
+  State<DevInfo> createState() => _DevInfoState();
 }
 
-bool checkBit(int value, int bit) => (value & (1 << bit)) != 0;
-
-class _DevSettingsState extends State<DevSettings> {
-  final Uuid cpuModuleServiceUuid =
-      Uuid.parse('388a4ae7-f276-4321-b227-6cd344f0bb7d');
-
-  final Uuid commandCharacteristicUuid =
-      Uuid.parse('6e884d38-1559-4fed-beb6-2c2166df9a06');
-  final Uuid cpuDeviceInfoCharacteristicUuid =
-      Uuid.parse('6e884d38-1559-4fed-beb6-2c2166df9a04');
-
+class _DevInfoState extends State<DevInfo> {
   List<int>? manufacturerNameData = [];
   List<int>? modelNumberData = [];
   List<int>? serielNumberData = [];
   List<int>? hardwareRevisionData = [];
   List<int>? firmwareRevisionData = [];
   List<int>? cpuDeviceInfoData = [0, 0];
+  List<String> modulesInfo = ['', '', '', '', '', '', '', '', '', '', '', ''];
   String softwareRevision = '';
   final transformerSize = [
     '250VA / 240v',
@@ -71,6 +64,7 @@ class _DevSettingsState extends State<DevSettings> {
 
   Future<void> _initData() async {
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
+    modulesInfo = widget.modulesInfo;
     softwareRevision = packageInfo.version;
     manufacturerNameData = widget.manufacturerNameData;
     modelNumberData = widget.modelNumberData;
@@ -99,24 +93,34 @@ Firmware Revision: ${String.fromCharCodes(firmwareRevisionData!)}
 Software Revision: $softwareRevision
 Transformer Size: ${transformerSize[cpuDeviceInfoData![0]]}
 Cell Model: ${cellModel[cpuDeviceInfoData![1]]}
-CH Module ID: 
-CH Module SW Version: 
-CH Module HW Version: ''';
+UI Module ID: ${modulesInfo[0]}
+UI Module SW Version: ${modulesInfo[1]}
+UI Module HW Version: ${modulesInfo[2]}
+CH Module ID: ${modulesInfo[3]}
+CH Module SW Version: ${modulesInfo[4]}
+CH Module HW Version: ${modulesInfo[5]}
+OZ Module ID: ${modulesInfo[6]}
+OZ Module SW Version: ${modulesInfo[7]}
+OZ Module HW Version: ${modulesInfo[8]}
+Pr Module ID: ${modulesInfo[9]}
+Pr Module SW Version: ${modulesInfo[10]}
+Pr Module HW Version: ${modulesInfo[11]}''';
     return Scaffold(
-        resizeToAvoidBottomInset: false,
-        appBar: AppBar(
-          centerTitle: true,
-          title: const Text(
-            "Device Info",
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
+      appBar: AppBar(
+        centerTitle: true,
+        title: const Text(
+          "Device Info",
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        body: Center(
-          child: Column(
-            children: [
-              DefaultTextStyle(
-                style: const TextStyle(
-                    fontSize: 18.0, color: Color.fromRGBO(53, 62, 71, 1)),
+      ),
+      body: Center(
+        child: Column(
+          children: [
+            DefaultTextStyle(
+              style: const TextStyle(
+                  fontSize: 18.0, color: Color.fromRGBO(53, 62, 71, 1)),
+              child: Padding(
+                padding: const EdgeInsets.all(10.0),
                 child: Column(
                   children: [
                     const Padding(
@@ -125,11 +129,21 @@ CH Module HW Version: ''';
                           style: TextStyle(
                               fontSize: 25.0, fontWeight: FontWeight.bold)),
                     ),
-                    Text(otherParameters),
-                    SizedBox(
-                      width: 100.0,
-                      height: 45.0,
-                      child: ElevatedButton(
+                    Container(
+                        margin: const EdgeInsets.all(15.0),
+                        padding: const EdgeInsets.all(8.0),
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                              color: const Color.fromRGBO(53, 62, 71, 1)),
+                          borderRadius: BorderRadius.circular(12.0),
+                        ),
+                        child: Text(otherParameters)),
+                    Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: SizedBox(
+                        width: 100.0,
+                        height: 45.0,
+                        child: ElevatedButton(
                           onPressed: () {
                             Share.share(otherParameters,
                                 subject: 'Other Parameters');
@@ -138,13 +152,17 @@ CH Module HW Version: ''';
                             'Send',
                             style: TextStyle(
                                 fontSize: 26.0, fontWeight: FontWeight.bold),
-                          )),
+                          ),
+                        ),
+                      ),
                     ),
                   ],
                 ),
-              )
-            ],
-          ),
-        ));
+              ),
+            )
+          ],
+        ),
+      ),
+    );
   }
 }

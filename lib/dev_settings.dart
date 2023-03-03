@@ -1,8 +1,11 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
-import 'package:package_info_plus/package_info_plus.dart';
-import 'package:share_plus/share_plus.dart';
+import 'package:osv2/dev_info.dart';
+import 'package:osv2/uuid_constants.dart';
+import 'package:settings_ui/settings_ui.dart';
+
+import 'dev_edit_device.dart';
 
 class DevSettings extends StatefulWidget {
   final DiscoveredDevice device;
@@ -12,8 +15,6 @@ class DevSettings extends StatefulWidget {
   final List<int>? modelNumberData;
   final List<int>? cpuDeviceInfoData;
   final List<int>? serielNumberData;
-  final List<int>? hardwareRevisionData;
-  final List<int>? firmwareRevisionData;
 
   const DevSettings({
     Key? key,
@@ -24,8 +25,6 @@ class DevSettings extends StatefulWidget {
     required this.modelNumberData,
     required this.cpuDeviceInfoData,
     required this.serielNumberData,
-    required this.hardwareRevisionData,
-    required this.firmwareRevisionData,
   }) : super(key: key);
 
   @override
@@ -35,21 +34,13 @@ class DevSettings extends StatefulWidget {
 bool checkBit(int value, int bit) => (value & (1 << bit)) != 0;
 
 class _DevSettingsState extends State<DevSettings> {
-  final Uuid cpuModuleServiceUuid =
-      Uuid.parse('388a4ae7-f276-4321-b227-6cd344f0bb7d');
-
-  final Uuid commandCharacteristicUuid =
-      Uuid.parse('6e884d38-1559-4fed-beb6-2c2166df9a06');
-  final Uuid cpuDeviceInfoCharacteristicUuid =
-      Uuid.parse('6e884d38-1559-4fed-beb6-2c2166df9a04');
-
   List<int>? manufacturerNameData = [];
   List<int>? modelNumberData = [];
   List<int>? serielNumberData = [];
   List<int>? hardwareRevisionData = [];
   List<int>? firmwareRevisionData = [];
   List<int>? cpuDeviceInfoData = [0, 0];
-  String softwareRevision = '';
+  List<int>? cpuStatusData = [0, 0];
   String? transformerSizeValue;
   String? cellModelValue;
   TextEditingController? textController;
@@ -73,14 +64,10 @@ class _DevSettingsState extends State<DevSettings> {
   ];
 
   Future<void> _initData() async {
-    PackageInfo packageInfo = await PackageInfo.fromPlatform();
-    softwareRevision = packageInfo.version;
     manufacturerNameData = widget.manufacturerNameData;
     modelNumberData = widget.modelNumberData;
     cpuDeviceInfoData = widget.cpuDeviceInfoData;
     serielNumberData = widget.serielNumberData;
-    hardwareRevisionData = widget.hardwareRevisionData;
-    firmwareRevisionData = widget.firmwareRevisionData;
     transformerSizeValue = transformerSize[cpuDeviceInfoData![0]];
     cellModelValue = cellModel[cpuDeviceInfoData![1]];
     textController =
@@ -97,189 +84,148 @@ class _DevSettingsState extends State<DevSettings> {
 
   @override
   Widget build(BuildContext context) {
-    String otherParameters =
-        '''Manufacturer Name: ${String.fromCharCodes(manufacturerNameData!)}
-Model Number: ${String.fromCharCodes(modelNumberData!)}
-Serial Number: ${String.fromCharCodes(serielNumberData!)}
-Hardware Revision: ${String.fromCharCodes(hardwareRevisionData!)}
-Firmware Revision: ${String.fromCharCodes(firmwareRevisionData!)}
-Software Revision: $softwareRevision
-Transformer Size: ${transformerSize[cpuDeviceInfoData![0]]}
-Cell Model: ${cellModel[cpuDeviceInfoData![1]]}
-CH Module ID: 
-CH Module SW Version: 
-CH Module HW Version: ''';
     return Scaffold(
-        resizeToAvoidBottomInset: false,
-        appBar: AppBar(
-          centerTitle: true,
-          title: const Text(
-            "Device Info",
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
+      appBar: AppBar(
+        centerTitle: true,
+        title: const Text(
+          "Developer Settings",
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        body: Center(
-          child: Column(
-            children: [
-              DefaultTextStyle(
-                style: const TextStyle(
-                    fontSize: 18.0, color: Color.fromRGBO(53, 62, 71, 1)),
-                child: Column(
-                  children: [
-                    const Padding(
-                      padding: EdgeInsets.all(8.0),
-                      child: Text(
-                        'Settings',
-                        style: TextStyle(
-                            fontSize: 25.0, fontWeight: FontWeight.bold),
-                      ),
+      ),
+      body: SettingsList(
+        sections: [
+          SettingsSection(
+            title: const Text('Developer'),
+            tiles: <SettingsTile>[
+              SettingsTile.navigation(
+                leading: const Icon(Icons.edit),
+                title: const Text('Edit Device'),
+                description: Text(
+                    'Transformer: ${transformerSize[cpuDeviceInfoData![0]]}, Cell Model: ${cellModel[cpuDeviceInfoData![1]]}, Model Number: ${String.fromCharCodes(modelNumberData!)}'),
+                onPressed: (context) => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => EditDevice(
+                      device: widget.device,
+                      flutterReactiveBle: widget.flutterReactiveBle,
+                      connection: widget.connection,
+                      modelNumberData: modelNumberData,
+                      cpuDeviceInfoData: cpuDeviceInfoData,
                     ),
-                    const Text('Device ID'),
-                    Container(
-                      width: 250,
-                      margin: const EdgeInsets.all(2.0),
-                      padding: const EdgeInsets.symmetric(vertical: 4.0),
-                      child: TextField(
-                        controller: textController,
-                        decoration: InputDecoration(
-                          enabledBorder: OutlineInputBorder(
-                              borderSide: const BorderSide(
-                                  color: Color.fromRGBO(88, 201, 223, 1),
-                                  width: 4.0),
-                              borderRadius: BorderRadius.circular(12.0)),
-                          focusedBorder: OutlineInputBorder(
-                              borderSide: const BorderSide(
-                                  color: Color.fromRGBO(88, 201, 223, 1),
-                                  width: 4.0),
-                              borderRadius: BorderRadius.circular(12.0)),
-                        ),
-                      ),
-                    ),
-                    const Text('Transformer Size'),
-                    Container(
-                      width: 250,
-                      margin: const EdgeInsets.all(2.0),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12.0, vertical: 4.0),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12.0),
-                        border: Border.all(
-                            color: const Color.fromRGBO(88, 201, 223, 1),
-                            width: 4.0),
-                      ),
-                      child: DropdownButtonHideUnderline(
-                        child: DropdownButton<String>(
-                          isExpanded: true,
-                          value: transformerSizeValue,
-                          items: transformerSize.map(buildMenuItem).toList(),
-                          onChanged: (value) => setState(() {
-                            transformerSizeValue = value;
-                          }),
-                        ),
-                      ),
-                    ),
-
-                    const Text('Cell Model'),
-                    Container(
-                      width: 250,
-                      margin: const EdgeInsets.all(2.0),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12.0, vertical: 4.0),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12.0),
-                        border: Border.all(
-                            color: const Color.fromRGBO(88, 201, 223, 1),
-                            width: 4.0),
-                      ),
-                      child: DropdownButtonHideUnderline(
-                        child: DropdownButton<String>(
-                          isExpanded: true,
-                          value: cellModelValue,
-                          items: cellModel.map(buildMenuItem).toList(),
-                          onChanged: (value) => setState(() {
-                            cellModelValue = value;
-                          }),
-                        ),
-                      ),
-                    ),
-                    SizedBox(
-                      width: 100.0,
-                      height: 45.0,
-                      child: ElevatedButton(
-                          onPressed: () async {
-                            final commandCharacteristic =
-                                QualifiedCharacteristic(
-                                    serviceId: cpuModuleServiceUuid,
-                                    characteristicId: commandCharacteristicUuid,
-                                    deviceId: widget.device.id);
-                            var commandResponse = await widget
-                                .flutterReactiveBle
-                                .readCharacteristic(commandCharacteristic);
-                            if (commandResponse[0] == 0) {
-                              await widget.flutterReactiveBle
-                                  .writeCharacteristicWithResponse(
-                                      commandCharacteristic,
-                                      value: [
-                                    240,
-                                    transformerSize
-                                        .indexOf(transformerSizeValue!)
-                                  ]);
-                            }
-                            commandResponse = await widget.flutterReactiveBle
-                                .readCharacteristic(commandCharacteristic);
-                            if (commandResponse[0] == 0) {
-                              await widget.flutterReactiveBle
-                                  .writeCharacteristicWithResponse(
-                                      commandCharacteristic,
-                                      value: [
-                                    241,
-                                    cellModel.indexOf(cellModelValue!)
-                                  ]);
-                            }
-                            await Future.delayed(const Duration(seconds: 1));
-                            cpuDeviceInfoData = await widget.flutterReactiveBle
-                                .readCharacteristic(QualifiedCharacteristic(
-                                    characteristicId:
-                                        cpuDeviceInfoCharacteristicUuid,
-                                    serviceId: cpuModuleServiceUuid,
-                                    deviceId: widget.device.id));
-                            setState(() {});
-                          },
-                          child: const Text('Save',
-                              style: TextStyle(
-                                  fontSize: 26.0,
-                                  fontWeight: FontWeight.bold))),
-                    ),
-                    ////
-                    const Padding(
-                      padding: EdgeInsets.all(8.0),
-                      child: Text('Other Parameters',
-                          style: TextStyle(
-                              fontSize: 25.0, fontWeight: FontWeight.bold)),
-                    ),
-                    Text(otherParameters),
-                    SizedBox(
-                      width: 100.0,
-                      height: 45.0,
-                      child: ElevatedButton(
-                          onPressed: () {
-                            Share.share(otherParameters,
-                                subject: 'Other Parameters');
-                          },
-                          child: const Text(
-                            'Send',
-                            style: TextStyle(
-                                fontSize: 26.0, fontWeight: FontWeight.bold),
-                          )),
-                    ),
-                  ],
+                  ),
                 ),
-              )
+              ),
+              SettingsTile.navigation(
+                  leading: const Icon(Icons.info),
+                  title: const Text('Device Info'),
+                  description: Text(
+                      'Manufacturer Name: ${String.fromCharCodes(manufacturerNameData!)}, Serial Number: ${String.fromCharCodes(serielNumberData!)}'),
+                  onPressed: (context) async {
+                    cpuStatusData = await widget.flutterReactiveBle
+                        .readCharacteristic(QualifiedCharacteristic(
+                            characteristicId: cpuStatusCharacteristicUuid,
+                            serviceId: cpuModuleServiceUuid,
+                            deviceId: widget.device.id));
+                    List<String> modulesInfo = [
+                      '',
+                      '',
+                      '',
+                      '',
+                      '',
+                      '',
+                      '',
+                      '',
+                      '',
+                      '',
+                      '',
+                      ''
+                    ];
+                    if (checkBit(cpuStatusData![0], 1)) {
+                      final uiInfoData = await widget.flutterReactiveBle
+                          .readCharacteristic(QualifiedCharacteristic(
+                              characteristicId: uiDeviceInfoCharacteristicUuid,
+                              serviceId: modbusDeviceInfoServiceUuid,
+                              deviceId: widget.device.id));
+                      modulesInfo[0] =
+                          '${(uiInfoData[0] << 8) | (uiInfoData[1])}';
+                      modulesInfo[1] =
+                          '${(uiInfoData[2] << 8) | (uiInfoData[3])}';
+                      modulesInfo[2] =
+                          '${(uiInfoData[11] << 56) | (uiInfoData[10] << 48) | (uiInfoData[9] << 40) | (uiInfoData[8] << 32) | (uiInfoData[7] << 24) | (uiInfoData[6] << 16) | (uiInfoData[5] << 8) | (uiInfoData[4])}';
+                    }
+                    if (checkBit(cpuStatusData![0], 2)) {
+                      final chInfoData = await widget.flutterReactiveBle
+                          .readCharacteristic(QualifiedCharacteristic(
+                              characteristicId: chDeviceInfoCharacteristicUuid,
+                              serviceId: modbusDeviceInfoServiceUuid,
+                              deviceId: widget.device.id));
+                      modulesInfo[3] =
+                          '${(chInfoData[0] << 8) | (chInfoData[1])}';
+                      modulesInfo[4] =
+                          '${(chInfoData[2] << 8) | (chInfoData[3])}';
+                      modulesInfo[5] =
+                          '${(chInfoData[15] << 88) | (chInfoData[14] << 80) | (chInfoData[13] << 72) | (chInfoData[12] << 64) | (chInfoData[11] << 56) | (chInfoData[10] << 48) | (chInfoData[9] << 40) | (chInfoData[8] << 32) | (chInfoData[7] << 24) | (chInfoData[6] << 16) | (chInfoData[5] << 8) | (chInfoData[4])}';
+                    }
+                    if (checkBit(cpuStatusData![0], 3)) {
+                      final ozInfoData = await widget.flutterReactiveBle
+                          .readCharacteristic(QualifiedCharacteristic(
+                              characteristicId: ozDeviceInfoCharacteristicUuid,
+                              serviceId: modbusDeviceInfoServiceUuid,
+                              deviceId: widget.device.id));
+                      modulesInfo[6] =
+                          '${(ozInfoData[0] << 8) | (ozInfoData[1])}';
+                      modulesInfo[7] =
+                          '${(ozInfoData[2] << 8) | (ozInfoData[3])}';
+                      modulesInfo[8] =
+                          '${(ozInfoData[15] << 88) | (ozInfoData[14] << 80) | (ozInfoData[13] << 72) | (ozInfoData[12] << 64) | (ozInfoData[11] << 56) | (ozInfoData[10] << 48) | (ozInfoData[9] << 40) | (ozInfoData[8] << 32) | (ozInfoData[7] << 24) | (ozInfoData[6] << 16) | (ozInfoData[5] << 8) | (ozInfoData[4])}';
+                    }
+                    if (checkBit(cpuStatusData![1], 1)) {
+                      final prInfoData = await widget.flutterReactiveBle
+                          .readCharacteristic(QualifiedCharacteristic(
+                              characteristicId: prDeviceInfoCharacteristicUuid,
+                              serviceId: modbusDeviceInfoServiceUuid,
+                              deviceId: widget.device.id));
+                      modulesInfo[9] =
+                          '${(prInfoData[0] << 8) | (prInfoData[1])}';
+                      modulesInfo[10] =
+                          '${(prInfoData[2] << 8) | (prInfoData[3])}';
+                      modulesInfo[11] =
+                          '${(prInfoData[15] << 88) | (prInfoData[14] << 80) | (prInfoData[13] << 72) | (prInfoData[12] << 64) | (prInfoData[11] << 56) | (prInfoData[10] << 48) | (prInfoData[9] << 40) | (prInfoData[8] << 32) | (prInfoData[7] << 24) | (prInfoData[6] << 16) | (prInfoData[5] << 8) | (prInfoData[4])}';
+                    }
+                    hardwareRevisionData = await widget.flutterReactiveBle
+                        .readCharacteristic(QualifiedCharacteristic(
+                            characteristicId:
+                                hardwareRevisionCharacteristicUuid,
+                            serviceId: deviceInformationServiceUuid,
+                            deviceId: widget.device.id));
+                    firmwareRevisionData = await widget.flutterReactiveBle
+                        .readCharacteristic(QualifiedCharacteristic(
+                            characteristicId:
+                                firmwareRevisionCharacteristicUuid,
+                            serviceId: deviceInformationServiceUuid,
+                            deviceId: widget.device.id));
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => DevInfo(
+                          device: widget.device,
+                          flutterReactiveBle: widget.flutterReactiveBle,
+                          connection: widget.connection,
+                          manufacturerNameData: manufacturerNameData,
+                          serielNumberData: serielNumberData,
+                          hardwareRevisionData: hardwareRevisionData,
+                          firmwareRevisionData: firmwareRevisionData,
+                          modelNumberData: modelNumberData,
+                          cpuDeviceInfoData: cpuDeviceInfoData,
+                          modulesInfo: modulesInfo,
+                        ),
+                      ),
+                    );
+                  }),
             ],
           ),
-        ));
+        ],
+      ),
+    );
   }
-
-  DropdownMenuItem<String> buildMenuItem(String item) =>
-      DropdownMenuItem(value: item, child: Text(item));
 }

@@ -4,6 +4,7 @@ import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:osv2/dev_settings.dart';
 import 'package:osv2/main.dart';
 import 'package:intl/intl.dart';
+import 'package:osv2/uuid_constants.dart';
 
 import 'change_timer.dart';
 
@@ -48,29 +49,6 @@ Color probeColor = const Color.fromRGBO(53, 62, 71, 1);
 bool checkBit(int value, int bit) => (value & (1 << bit)) != 0;
 
 class _SettingsState extends State<Settings> {
-  final Uuid cpuModuleServiceUuid =
-      Uuid.parse('388a4ae7-f276-4321-b227-6cd344f0bb7d');
-  final Uuid deviceInformationServiceUuid =
-      Uuid.parse('180a'); // 0000180a-0000-1000-8000-00805f9b34fb
-
-  final Uuid cpuStatusCharacteristicUuid =
-      Uuid.parse('6e884d38-1559-4fed-beb6-2c2166df9a00');
-  final Uuid rtcCharacteristicUuid =
-      Uuid.parse('6e884d38-1559-4fed-beb6-2c2166df9a02');
-  final Uuid runModeCharacteristicUuid =
-      Uuid.parse('6e884d38-1559-4fed-beb6-2c2166df9a03');
-  final Uuid commandCharacteristicUuid =
-      Uuid.parse('6e884d38-1559-4fed-beb6-2c2166df9a06');
-  final Uuid timersCharacteristicUuid =
-      Uuid.parse('6e884d38-1559-4fed-beb6-2c2166df9a07');
-  final Uuid cpuDeviceInfoCharacteristicUuid =
-      Uuid.parse('6e884d38-1559-4fed-beb6-2c2166df9a04');
-  final Uuid manufacturerNameCharacteristicUuid = Uuid.parse('2a29');
-  final Uuid modelNumberCharacteristicUuid = Uuid.parse('2a24');
-  final Uuid serielNumberCharacteristicUuid = Uuid.parse('2a25');
-  final Uuid hardwareRevisionCharacteristicUuid = Uuid.parse('2a27');
-  final Uuid firmwareRevisionCharacteristicUuid = Uuid.parse('2a26');
-
   Stream<List<int>>? cpuStatusSubscriptionStream;
   Stream<List<int>>? rtcSubscriptionStream;
   Stream<List<int>>? runModeSubscriptionStream;
@@ -151,215 +129,267 @@ class _SettingsState extends State<Settings> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          centerTitle: true,
-          title: const Text(
-            "Settings",
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
+      appBar: AppBar(
+        centerTitle: true,
+        title: const Text(
+          "Settings",
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        body: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: <Widget>[
-            Padding(
-              padding: const EdgeInsets.all(10.0),
-              child: Column(
-                children: [
-                  StreamBuilder<List<int>>(
-                    stream: rtcSubscriptionStream,
-                    builder: (rtcContext, rtcSnapshot) {
-                      if (rtcSnapshot.hasData) {
-                        rtcData = rtcSnapshot.data;
-                      }
-                      DateTime rtcDateTime = DateTime(rtcData![6] + 2000,
-                          rtcData![5], rtcData![4], rtcData![2], rtcData![1]);
+      ),
+      body:
+          // StreamBuilder<Object>(
+          // stream: rtcSubscriptionStream,
+          // builder: (rtcContext, rtcSnapshot) {
+          //   return SettingsList(sections: [
+          //     SettingsSection(
+          //       title: const Text('Date & Time'),
+          //       tiles: [
+          //         SettingsTile(
+          //           title: const Text('Change Clock Time'),
+          //           leading: const Icon(Icons.access_time),
+          //           description: const Text('Add time in here later'),
+          //           onPressed: (context) => Navigator.push(
+          //             context,
+          //             MaterialPageRoute(
+          //               builder: (context) => DevSettings(
+          //                 device: widget.device,
+          //                 flutterReactiveBle: widget.flutterReactiveBle,
+          //                 connection: widget.connection,
+          //                 modelNumberData: modelNumberData,
+          //                 cpuDeviceInfoData: cpuDeviceInfoData,
+          //                 manufacturerNameData: manufacturerNameData,
+          //                 serielNumberData: serielNumberData,
+          //               ),
+          //             ),
+          //           ),
+          //         )
+          //       ],
+          //     ),
+          //     SettingsSection(
+          //       title: const Text('Developer'),
+          //       tiles: [
+          //         SettingsTile.navigation(
+          //           title: const Text('Developer Settings'),
+          //           leading: const Icon(Icons.developer_mode),
+          //           description: const Text(
+          //               'Edit device settings, get developer info'),
+          //           onPressed: (context) => Navigator.push(
+          //             context,
+          //             MaterialPageRoute(
+          //               builder: (context) => DevSettings(
+          //                 device: widget.device,
+          //                 flutterReactiveBle: widget.flutterReactiveBle,
+          //                 connection: widget.connection,
+          //                 modelNumberData: modelNumberData,
+          //                 cpuDeviceInfoData: cpuDeviceInfoData,
+          //                 manufacturerNameData: manufacturerNameData,
+          //                 serielNumberData: serielNumberData,
+          //               ),
+          //             ),
+          //           ),
+          //         )
+          //       ],
+          //     ),
+          //   ]);
+          // })
 
-                      return Column(
-                        children: [
-                          TextButton(
-                            onPressed: () async {
-                              TimeOfDay? selectedTime = await showTimePicker(
-                                initialTime: TimeOfDay.now(),
-                                context: context,
-                              );
-                              if (selectedTime != null) {
-                                final commandCharacteristic =
-                                    QualifiedCharacteristic(
-                                        serviceId: cpuModuleServiceUuid,
-                                        characteristicId:
-                                            commandCharacteristicUuid,
-                                        deviceId: widget.device.id);
-                                final commandResponse = await widget
-                                    .flutterReactiveBle
-                                    .readCharacteristic(commandCharacteristic);
-                                if (commandResponse[0] == 0) {
-                                  await widget.flutterReactiveBle
-                                      .writeCharacteristicWithResponse(
-                                          commandCharacteristic,
-                                          value: [
-                                        1,
-                                        selectedTime.hour,
-                                        selectedTime.minute,
-                                        0
-                                      ]);
-                                }
+          Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: <Widget>[
+          Padding(
+            padding: const EdgeInsets.all(10.0),
+            child: Column(
+              children: [
+                StreamBuilder<List<int>>(
+                  stream: rtcSubscriptionStream,
+                  builder: (rtcContext, rtcSnapshot) {
+                    if (rtcSnapshot.hasData) {
+                      rtcData = rtcSnapshot.data;
+                    }
+                    DateTime rtcDateTime = DateTime(rtcData![6] + 2000,
+                        rtcData![5], rtcData![4], rtcData![2], rtcData![1]);
+
+                    return Column(
+                      children: [
+                        TextButton(
+                          onPressed: () async {
+                            TimeOfDay? selectedTime = await showTimePicker(
+                              initialTime: TimeOfDay.now(),
+                              context: context,
+                            );
+                            if (selectedTime != null) {
+                              final commandCharacteristic =
+                                  QualifiedCharacteristic(
+                                      serviceId: cpuModuleServiceUuid,
+                                      characteristicId:
+                                          commandCharacteristicUuid,
+                                      deviceId: widget.device.id);
+                              final commandResponse = await widget
+                                  .flutterReactiveBle
+                                  .readCharacteristic(commandCharacteristic);
+                              if (commandResponse[0] == 0) {
+                                await widget.flutterReactiveBle
+                                    .writeCharacteristicWithResponse(
+                                        commandCharacteristic,
+                                        value: [
+                                      1,
+                                      selectedTime.hour,
+                                      selectedTime.minute,
+                                      0
+                                    ]);
                               }
-                            },
-                            child: Text(
-                              'Time\n${DateFormat('hh:mm').format(rtcDateTime)}${DateFormat('a').format(rtcDateTime).toLowerCase()}',
-                              style: const TextStyle(
-                                  fontSize: 30.0,
-                                  color: Color.fromRGBO(53, 62, 71, 1)),
-                            ),
+                            }
+                          },
+                          child: Text(
+                            'Time\n${DateFormat('hh:mm').format(rtcDateTime)}${DateFormat('a').format(rtcDateTime).toLowerCase()}',
+                            style: const TextStyle(
+                                fontSize: 30.0,
+                                color: Color.fromRGBO(53, 62, 71, 1)),
                           ),
-                          TextButton(
-                            onPressed: () async {
-                              DateTime? selectedDate = await showDatePicker(
-                                firstDate: DateTime(2000),
-                                lastDate: DateTime(2100),
-                                initialDate: DateTime.now(),
-                                context: context,
-                              );
-                              if (selectedDate != null) {
-                                final commandCharacteristic =
-                                    QualifiedCharacteristic(
-                                        serviceId: cpuModuleServiceUuid,
-                                        characteristicId:
-                                            commandCharacteristicUuid,
-                                        deviceId: widget.device.id);
-                                final commandResponse = await widget
-                                    .flutterReactiveBle
-                                    .readCharacteristic(commandCharacteristic);
-                                if (commandResponse[0] == 0) {
-                                  await widget.flutterReactiveBle
-                                      .writeCharacteristicWithResponse(
-                                          commandCharacteristic,
-                                          value: [
-                                        2,
-                                        selectedDate.day,
-                                        selectedDate.month,
-                                        selectedDate.year - 2000,
-                                      ]);
-                                }
+                        ),
+                        TextButton(
+                          onPressed: () async {
+                            DateTime? selectedDate = await showDatePicker(
+                              firstDate: DateTime(2000),
+                              lastDate: DateTime(2100),
+                              initialDate: DateTime.now(),
+                              context: context,
+                            );
+                            if (selectedDate != null) {
+                              final commandCharacteristic =
+                                  QualifiedCharacteristic(
+                                      serviceId: cpuModuleServiceUuid,
+                                      characteristicId:
+                                          commandCharacteristicUuid,
+                                      deviceId: widget.device.id);
+                              final commandResponse = await widget
+                                  .flutterReactiveBle
+                                  .readCharacteristic(commandCharacteristic);
+                              if (commandResponse[0] == 0) {
+                                await widget.flutterReactiveBle
+                                    .writeCharacteristicWithResponse(
+                                        commandCharacteristic,
+                                        value: [
+                                      2,
+                                      selectedDate.day,
+                                      selectedDate.month,
+                                      selectedDate.year - 2000,
+                                    ]);
                               }
-                            },
-                            child: Text(
-                              'Date\n${DateFormat('dd MMMM y').format(rtcDateTime)}',
-                              style: const TextStyle(
-                                  fontSize: 30.0,
-                                  color: Color.fromRGBO(53, 62, 71, 1)),
+                            }
+                          },
+                          child: Text(
+                            'Date\n${DateFormat('dd MMMM y').format(rtcDateTime)}',
+                            style: const TextStyle(
+                                fontSize: 30.0,
+                                color: Color.fromRGBO(53, 62, 71, 1)),
+                          ),
+                        )
+                      ],
+                    );
+                  },
+                ),
+                TextButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ChangeTimer(
+                            device: widget.device,
+                            flutterReactiveBle: widget.flutterReactiveBle,
+                            connection: widget.connection,
+                            timersData: timersData,
+                          ),
+                        ),
+                      ).then((_) async {
+                        timersData = await widget.flutterReactiveBle
+                            .readCharacteristic(QualifiedCharacteristic(
+                                characteristicId: timersCharacteristicUuid,
+                                serviceId: cpuModuleServiceUuid,
+                                deviceId: widget.device.id));
+                        timer1Start = DateTime(today.year, today.month,
+                            today.day, timersData![0], timersData![1]);
+                        timer1Duration = Duration(
+                            minutes: (timersData![2] << 8) | (timersData![3]));
+                        timer1End = timer1Start.add(timer1Duration);
+                        setState(() {});
+                      });
+                    },
+                    child: Text(
+                        'Timer 1\nStart: ${DateFormat('hh:mm').format(timer1Start)}${DateFormat('a').format(timer1Start).toLowerCase()}\tStop: ${DateFormat('hh:mm').format(timer1End)}${DateFormat('a').format(timer1End).toLowerCase()}')),
+                TextButton(
+                    onPressed: () => {
+                          widget.connection!.cancel(),
+                          Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const MyHomePage(
+                                title: 'Ozone Swim',
+                              ),
+                            ),
+                            (Route<dynamic> route) => false,
+                          )
+                        },
+                    child: const Text('Disconnect')),
+                TextButton(
+                    onPressed: () async => {
+                          manufacturerNameData = await widget.flutterReactiveBle
+                              .readCharacteristic(QualifiedCharacteristic(
+                                  characteristicId:
+                                      manufacturerNameCharacteristicUuid,
+                                  serviceId: deviceInformationServiceUuid,
+                                  deviceId: widget.device.id)),
+                          modelNumberData = await widget.flutterReactiveBle
+                              .readCharacteristic(QualifiedCharacteristic(
+                                  characteristicId:
+                                      modelNumberCharacteristicUuid,
+                                  serviceId: deviceInformationServiceUuid,
+                                  deviceId: widget.device.id)),
+                          serielNumberData = await widget.flutterReactiveBle
+                              .readCharacteristic(QualifiedCharacteristic(
+                                  characteristicId:
+                                      serielNumberCharacteristicUuid,
+                                  serviceId: deviceInformationServiceUuid,
+                                  deviceId: widget.device.id)),
+                          hardwareRevisionData = await widget.flutterReactiveBle
+                              .readCharacteristic(QualifiedCharacteristic(
+                                  characteristicId:
+                                      hardwareRevisionCharacteristicUuid,
+                                  serviceId: deviceInformationServiceUuid,
+                                  deviceId: widget.device.id)),
+                          firmwareRevisionData = await widget.flutterReactiveBle
+                              .readCharacteristic(QualifiedCharacteristic(
+                                  characteristicId:
+                                      firmwareRevisionCharacteristicUuid,
+                                  serviceId: deviceInformationServiceUuid,
+                                  deviceId: widget.device.id)),
+                          cpuDeviceInfoData = await widget.flutterReactiveBle
+                              .readCharacteristic(QualifiedCharacteristic(
+                                  characteristicId:
+                                      cpuDeviceInfoCharacteristicUuid,
+                                  serviceId: cpuModuleServiceUuid,
+                                  deviceId: widget.device.id)),
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => DevSettings(
+                                device: widget.device,
+                                flutterReactiveBle: widget.flutterReactiveBle,
+                                connection: widget.connection,
+                                manufacturerNameData: manufacturerNameData,
+                                modelNumberData: modelNumberData,
+                                serielNumberData: serielNumberData,
+                                cpuDeviceInfoData: cpuDeviceInfoData,
+                              ),
                             ),
                           )
-                        ],
-                      );
-                    },
-                  ),
-                  TextButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ChangeTimer(
-                              device: widget.device,
-                              flutterReactiveBle: widget.flutterReactiveBle,
-                              connection: widget.connection,
-                              timersData: timersData,
-                            ),
-                          ),
-                        ).then((_) async {
-                          timersData = await widget.flutterReactiveBle
-                              .readCharacteristic(QualifiedCharacteristic(
-                                  characteristicId: timersCharacteristicUuid,
-                                  serviceId: cpuModuleServiceUuid,
-                                  deviceId: widget.device.id));
-                          timer1Start = DateTime(today.year, today.month,
-                              today.day, timersData![0], timersData![1]);
-                          timer1Duration = Duration(
-                              minutes:
-                                  (timersData![2] << 8) | (timersData![3]));
-                          timer1End = timer1Start.add(timer1Duration);
-                          setState(() {});
-                        });
-                      },
-                      child: Text(
-                          'Timer 1\nStart: ${DateFormat('hh:mm').format(timer1Start)}${DateFormat('a').format(timer1Start).toLowerCase()}\tStop: ${DateFormat('hh:mm').format(timer1End)}${DateFormat('a').format(timer1End).toLowerCase()}')),
-                  TextButton(
-                      onPressed: () => {
-                            widget.connection!.cancel(),
-                            Navigator.pushAndRemoveUntil(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const MyHomePage(
-                                  title: 'Ozone Swim',
-                                ),
-                              ),
-                              (Route<dynamic> route) => false,
-                            )
-                          },
-                      child: const Text('Disconnect')),
-                  TextButton(
-                      onPressed: () async => {
-                            manufacturerNameData = await widget
-                                .flutterReactiveBle
-                                .readCharacteristic(QualifiedCharacteristic(
-                                    characteristicId:
-                                        manufacturerNameCharacteristicUuid,
-                                    serviceId: deviceInformationServiceUuid,
-                                    deviceId: widget.device.id)),
-                            modelNumberData = await widget.flutterReactiveBle
-                                .readCharacteristic(QualifiedCharacteristic(
-                                    characteristicId:
-                                        modelNumberCharacteristicUuid,
-                                    serviceId: deviceInformationServiceUuid,
-                                    deviceId: widget.device.id)),
-                            serielNumberData = await widget.flutterReactiveBle
-                                .readCharacteristic(QualifiedCharacteristic(
-                                    characteristicId:
-                                        serielNumberCharacteristicUuid,
-                                    serviceId: deviceInformationServiceUuid,
-                                    deviceId: widget.device.id)),
-                            hardwareRevisionData = await widget
-                                .flutterReactiveBle
-                                .readCharacteristic(QualifiedCharacteristic(
-                                    characteristicId:
-                                        hardwareRevisionCharacteristicUuid,
-                                    serviceId: deviceInformationServiceUuid,
-                                    deviceId: widget.device.id)),
-                            firmwareRevisionData = await widget
-                                .flutterReactiveBle
-                                .readCharacteristic(QualifiedCharacteristic(
-                                    characteristicId:
-                                        firmwareRevisionCharacteristicUuid,
-                                    serviceId: deviceInformationServiceUuid,
-                                    deviceId: widget.device.id)),
-                            cpuDeviceInfoData = await widget.flutterReactiveBle
-                                .readCharacteristic(QualifiedCharacteristic(
-                                    characteristicId:
-                                        cpuDeviceInfoCharacteristicUuid,
-                                    serviceId: cpuModuleServiceUuid,
-                                    deviceId: widget.device.id)),
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => DevSettings(
-                                  device: widget.device,
-                                  flutterReactiveBle: widget.flutterReactiveBle,
-                                  connection: widget.connection,
-                                  manufacturerNameData: manufacturerNameData,
-                                  modelNumberData: modelNumberData,
-                                  serielNumberData: serielNumberData,
-                                  hardwareRevisionData: hardwareRevisionData,
-                                  firmwareRevisionData: firmwareRevisionData,
-                                  cpuDeviceInfoData: cpuDeviceInfoData,
-                                ),
-                              ),
-                            )
-                          },
-                      child: const Text('Developer')),
-                ],
-              ),
+                        },
+                    child: const Text('Developer')),
+              ],
             ),
-          ],
-        ));
+          ),
+        ],
+      ),
+    );
   }
 }

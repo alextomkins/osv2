@@ -1,15 +1,16 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
+import 'package:osv2/uuid_constants.dart';
 
-class DevSettings extends StatefulWidget {
+class EditDevice extends StatefulWidget {
   final DiscoveredDevice device;
   final FlutterReactiveBle flutterReactiveBle;
   final StreamSubscription<ConnectionStateUpdate>? connection;
   final List<int>? modelNumberData;
   final List<int>? cpuDeviceInfoData;
 
-  const DevSettings({
+  const EditDevice({
     Key? key,
     required this.device,
     required this.flutterReactiveBle,
@@ -19,20 +20,12 @@ class DevSettings extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<DevSettings> createState() => _DevSettingsState();
+  State<EditDevice> createState() => _EditDeviceState();
 }
 
 bool checkBit(int value, int bit) => (value & (1 << bit)) != 0;
 
-class _DevSettingsState extends State<DevSettings> {
-  final Uuid cpuModuleServiceUuid =
-      Uuid.parse('388a4ae7-f276-4321-b227-6cd344f0bb7d');
-
-  final Uuid commandCharacteristicUuid =
-      Uuid.parse('6e884d38-1559-4fed-beb6-2c2166df9a06');
-  final Uuid cpuDeviceInfoCharacteristicUuid =
-      Uuid.parse('6e884d38-1559-4fed-beb6-2c2166df9a04');
-
+class _EditDeviceState extends State<EditDevice> {
   List<int>? modelNumberData = [];
   List<int>? cpuDeviceInfoData = [0, 0];
   String softwareRevision = '';

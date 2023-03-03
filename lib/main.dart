@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:osv2/utils.dart';
+import 'package:osv2/uuid_constants.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'routes.dart';
 import 'dart:io' show Platform;
@@ -51,17 +52,6 @@ class _MyHomePageState extends State<MyHomePage> {
   bool _scanning = false;
   bool _connected = false;
   String _logTexts = "";
-
-  final Uuid cpuModuleServiceUuid =
-      Uuid.parse('388a4ae7-f276-4321-b227-6cd344f0bb7d');
-  final Uuid cpuStatusCharacteristicUuid =
-      Uuid.parse('6e884d38-1559-4fed-beb6-2c2166df9a00');
-  final Uuid rtcCharacteristicUuid =
-      Uuid.parse('6e884d38-1559-4fed-beb6-2c2166df9a02');
-  final Uuid runModeCharacteristicUuid =
-      Uuid.parse('6e884d38-1559-4fed-beb6-2c2166df9a03');
-  final Uuid timersCharacteristicUuid =
-      Uuid.parse('6e884d38-1559-4fed-beb6-2c2166df9a07');
   bool isConnecting = false;
 
   @override
