@@ -63,7 +63,8 @@ Color probeColor = const Color.fromRGBO(53, 62, 71, 1);
 
 bool checkBit(int value, int bit) => (value & (1 << bit)) != 0;
 
-class _MainScreenState extends State<MainScreen> {
+class _MainScreenState extends State<MainScreen>
+    with SingleTickerProviderStateMixin {
   Stream<List<int>>? cpuStatusSubscriptionStream;
   Stream<List<int>>? rtcSubscriptionStream;
   Stream<List<int>>? runModeSubscriptionStream;
@@ -185,8 +186,18 @@ class _MainScreenState extends State<MainScreen> {
     setState(() {});
   }
 
+  late AnimationController _animationController;
+  late Animation _animation;
+
   @override
   void initState() {
+    _animationController =
+        AnimationController(vsync: this, duration: const Duration(seconds: 2));
+    _animationController.repeat(reverse: true);
+    _animation = Tween(begin: 2.0, end: 20.0).animate(_animationController)
+      ..addListener(() {
+        setState(() {});
+      });
     super.initState();
     setState(() {});
     _initData();
@@ -199,7 +210,7 @@ class _MainScreenState extends State<MainScreen> {
       appBar: AppBar(
         centerTitle: true,
         title: const Text(
-          "Ozone Swim",
+          "Ozone Swim v2",
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         actions: <Widget>[
@@ -486,50 +497,43 @@ class _MainScreenState extends State<MainScreen> {
                     }
                     return Column(
                       children: [
-                        Stack(
-                          children: [
-                            const Center(
-                              child: SizedBox(
-                                width: 300,
-                                height: 300,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 6.0,
-                                  color: Color.fromRGBO(88, 201, 223, 1),
-                                ),
+                        Container(
+                          height: 320,
+                          width: 400,
+                          decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.white,
+                              boxShadow: [
+                                BoxShadow(
+                                    color:
+                                        const Color.fromRGBO(88, 201, 223, 1),
+                                    blurRadius: _animation.value,
+                                    spreadRadius: _animation.value)
+                              ]),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                rtcDayOfWeek,
+                                style: const TextStyle(
+                                    fontSize: 30.0,
+                                    color: Color.fromRGBO(53, 62, 71, 1)),
                               ),
-                            ),
-                            Center(
-                                child: Padding(
-                                    padding: const EdgeInsets.all(70.0),
-                                    child: Column(children: [
-                                      Column(
-                                        children: [
-                                          Text(
-                                            rtcDayOfWeek,
-                                            style: const TextStyle(
-                                                fontSize: 30.0,
-                                                color: Color.fromRGBO(
-                                                    53, 62, 71, 1)),
-                                          ),
-                                          Text(
-                                            '$rtc12Hour:${rtcMinutes.toString().padLeft(2, '0')}$rtcAmPm',
-                                            style: const TextStyle(
-                                                fontSize: 60.0,
-                                                fontWeight: FontWeight.bold,
-                                                color: Color.fromRGBO(
-                                                    53, 62, 71, 1)),
-                                          ),
-                                          Text(
-                                            '$rtcDay $rtcMonth',
-                                            style: const TextStyle(
-                                                fontSize: 30.0,
-                                                color: Color.fromRGBO(
-                                                    53, 62, 71, 1)),
-                                          ),
-                                        ],
-                                      )
-                                    ])))
-                          ],
+                              Text(
+                                '$rtc12Hour:${rtcMinutes.toString().padLeft(2, '0')}$rtcAmPm',
+                                style: const TextStyle(
+                                    fontSize: 60.0,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color.fromRGBO(53, 62, 71, 1)),
+                              ),
+                              Text(
+                                '$rtcDay $rtcMonth',
+                                style: const TextStyle(
+                                    fontSize: 30.0,
+                                    color: Color.fromRGBO(53, 62, 71, 1)),
+                              ),
+                            ],
+                          ),
                         ),
                         Padding(
                           padding: const EdgeInsets.only(top: 15.0),
@@ -610,7 +614,7 @@ class _MainScreenState extends State<MainScreen> {
                 ),
                 Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.only(bottom: 80.0),
+                    padding: const EdgeInsets.only(bottom: 60.0),
                     child: Align(
                       alignment: Alignment.bottomCenter,
                       child: ToggleButtons(

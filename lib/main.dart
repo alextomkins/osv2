@@ -31,7 +31,7 @@ class MyApp extends StatelessWidget {
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
       //darkTheme: ThemeData.dark(),
-      home: const MyHomePage(title: 'Ozone Swim'),
+      home: const MyHomePage(title: 'Ozone Swim v2'),
     );
   }
 }
@@ -287,45 +287,64 @@ class _MyHomePageState extends State<MyHomePage> {
                   ],
                 ),
               ),
-              Container(
-                margin: const EdgeInsets.all(20.0),
-                height: 300,
-                child: ListView.builder(
-                  itemCount: _foundBleUARTDevices.length,
-                  itemBuilder: (context, index) => Card(
-                    child: ListTile(
-                      dense: true,
-                      tileColor: selectedIndex == index
-                          ? const Color.fromRGBO(88, 201, 223, 1)
-                          : Colors.transparent,
-                      title: GestureDetector(
-                          behavior: HitTestBehavior.translucent,
-                          onTap: () {
-                            _stopScan();
-                            setState(() => selectedIndex = index);
-                            this.index = index;
-                          },
+              Stack(children: [
+                Visibility(
+                    visible: _foundBleUARTDevices.isEmpty,
+                    child: const Center(
+                      child: Padding(
+                        padding: EdgeInsets.only(top: 20.0),
+                        child: SizedBox(
+                          height: 200,
+                          width: 300,
                           child: Text(
-                              //"${_foundBleUARTDevices[index].name} rssi: ${_foundBleUARTDevices[index].rssi}")),
-                              _foundBleUARTDevices[index].name)),
-                      trailing: Icon(_foundBleUARTDevices[index].rssi >= -67
-                          ? Icons.signal_cellular_alt
-                          : _foundBleUARTDevices[index].rssi >= -77
-                              ? Icons.signal_cellular_alt_2_bar
-                              : _foundBleUARTDevices[index].rssi > -90
-                                  ? Icons.signal_cellular_alt_1_bar
-                                  : Icons.signal_cellular_0_bar),
+                            'Press and Hold the Bluetooth Pairing Button on your Ozone Swim v2',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                                color: Color(0xFF353E47), fontSize: 25.0),
+                          ),
+                        ),
+                      ),
+                    )),
+                Container(
+                  margin: const EdgeInsets.all(20.0),
+                  height: 300,
+                  child: ListView.builder(
+                    itemCount: _foundBleUARTDevices.length,
+                    itemBuilder: (context, index) => Card(
+                      child: ListTile(
+                        dense: true,
+                        tileColor: selectedIndex == index
+                            ? const Color.fromRGBO(88, 201, 223, 1)
+                            : Colors.transparent,
+                        title: GestureDetector(
+                            behavior: HitTestBehavior.translucent,
+                            onTap: () {
+                              _stopScan();
+                              setState(() => selectedIndex = index);
+                              this.index = index;
+                            },
+                            child: Text(
+                                //"${_foundBleUARTDevices[index].name} rssi: ${_foundBleUARTDevices[index].rssi}")),
+                                _foundBleUARTDevices[index].name)),
+                        trailing: Icon(_foundBleUARTDevices[index].rssi >= -67
+                            ? Icons.signal_cellular_alt
+                            : _foundBleUARTDevices[index].rssi >= -77
+                                ? Icons.signal_cellular_alt_2_bar
+                                : _foundBleUARTDevices[index].rssi > -90
+                                    ? Icons.signal_cellular_alt_1_bar
+                                    : Icons.signal_cellular_0_bar),
+                      ),
                     ),
                   ),
                 ),
-              ),
+              ]),
               Row(
                 children: [
                   Visibility(
                     maintainSize: true,
                     maintainAnimation: true,
                     maintainState: true,
-                    visible: (index > -1) ? true : false,
+                    visible: index > -1,
                     child: Padding(
                       padding: const EdgeInsets.only(
                           left: 115.0, top: 50.0, bottom: 50.0),

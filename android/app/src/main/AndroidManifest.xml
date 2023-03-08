@@ -10,9 +10,9 @@
                      tools:targetApi="s" /> -->
 
    <application
-        android:label="osv2"
+        android:label="Ozone Swim v2"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/launcher_icon">
         <activity
             android:name=".MainActivity"
             android:exported="true"

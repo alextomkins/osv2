@@ -277,7 +277,7 @@ class _SettingsState extends State<Settings> {
                       context,
                       MaterialPageRoute(
                         builder: (context) => const MyHomePage(
-                          title: 'Ozone Swim',
+                          title: 'Ozone Swim v2',
                         ),
                       ),
                       (Route<dynamic> route) => false,
