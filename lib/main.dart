@@ -7,9 +7,15 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:osv2/main_screen.dart';
 import 'dart:io' show Platform;
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter/services.dart';
 
 void main() {
-  runApp(const MyApp());
+  WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]).then((value) => runApp(const MyApp()));
+  //runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {

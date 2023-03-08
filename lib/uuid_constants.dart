@@ -2,8 +2,8 @@ import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 
 final Uuid cpuModuleServiceUuid =
     Uuid.parse('388a4ae7-f276-4321-b227-6cd344f0bb7d');
-final Uuid modbusDevicesServiceUuid = Uuid.parse(
-    '388a4ae7-f276-4321-b227-6cd344f0bb7d'); // TODO: check this with Nick
+final Uuid modbusDevicesServiceUuid =
+    Uuid.parse('2b70fc16-9e65-4d84-88b7-f501ce4ec23f');
 final Uuid modbusDeviceInfoServiceUuid =
     Uuid.parse('42024ac7-84a7-4635-a57c-63a759cda43b');
 final Uuid deviceInformationServiceUuid = Uuid.parse('180a');

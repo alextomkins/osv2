@@ -1,9 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
-import 'package:intl/intl.dart';
 import 'package:osv2/settings.dart';
-import 'package:osv2/settings_v2.dart';
 import 'package:osv2/uuid_constants.dart';
 import 'custom_dialogs.dart';
 import 'my_flutter_app_icons.dart';
@@ -93,24 +91,78 @@ class _MainScreenState extends State<MainScreen> {
     0
   ];
   int runMode = 0;
-  DateTime timer1Start = DateTime.now();
-  DateTime timer1End = DateTime.now();
-  Duration timer1Duration = const Duration(minutes: 0);
-  final today = DateTime.now();
   double timer1Progress = 0.0;
   Timer? timer;
-  bool inTimer = false;
+  int timer1StartHour = 0;
+  int timer1Start24Hour = 0;
+  int timer1Start12Hour = 0;
+  String timer1StartAmPm = '';
+  int timer1StartMinutes = 0;
+  int timer1DurationTotal = 0;
+  int timer1DurationHour = 0;
+  int timer1DurationMinutes = 0;
+  double runTime = 0.0;
+  int timer1EndTotal = 0;
+  int timer1End24Hour = 0;
+  int timer1End12Hour = 0;
+  String timer1EndAmPm = '';
+  int timer1EndMinutes = 0;
+  int timer1ElapsedMinutes = 0;
+  int rtcTotalMinutes = 0;
+  int timer1StartTotalMinutes = 0;
 
   void _initData() {
     cpuStatusData = widget.cpuStatusData;
     rtcData = widget.rtcData;
     runModeData = widget.runModeData;
-    timersData = widget.timersData;
-    timer1Start = DateTime(today.year, today.month, today.day,
-        widget.timersData![0], widget.timersData![1]);
-    timer1Duration = Duration(
-        minutes: (widget.timersData![2] << 8) | (widget.timersData![3]));
-    timer1End = timer1Start.add(timer1Duration);
+    timer1Start24Hour = widget.timersData![0];
+    if (timer1Start24Hour == 0) {
+      timer1Start12Hour = 12;
+      timer1StartAmPm = 'am';
+    } else if (timer1Start24Hour < 13) {
+      timer1Start12Hour = timer1Start24Hour;
+      timer1StartAmPm = 'am';
+      if (timer1Start12Hour == 12) {
+        timer1StartAmPm = 'pm';
+      }
+    } else {
+      timer1Start12Hour = timer1Start24Hour - 12;
+      timer1StartAmPm = 'pm';
+    }
+    timer1StartMinutes = widget.timersData![1];
+    timer1DurationTotal =
+        (widget.timersData![2] << 8) | (widget.timersData![3]);
+    timer1DurationHour = (timer1DurationTotal / 60).floor();
+    timer1DurationMinutes = timer1DurationTotal % 60;
+    runTime = timer1DurationTotal.toDouble();
+    timer1EndTotal =
+        timer1Start24Hour * 60 + timer1StartMinutes + timer1DurationTotal;
+    if (timer1EndTotal > 1440) {
+      timer1EndTotal -= 1440;
+    }
+    timer1End24Hour = (timer1EndTotal / 60).floor();
+    if (timer1End24Hour == 0) {
+      timer1End12Hour = 12;
+      timer1EndAmPm = 'am';
+    } else if (timer1End24Hour < 13) {
+      timer1End12Hour = timer1End24Hour;
+      timer1EndAmPm = 'am';
+      if (timer1End12Hour == 12) {
+        timer1EndAmPm = 'pm';
+      }
+    } else {
+      timer1End12Hour = timer1End24Hour - 12;
+      timer1EndAmPm = 'pm';
+    }
+    timer1EndMinutes = timer1EndTotal % 60;
+    rtcTotalMinutes = rtcData![1] + rtcData![2] * 60;
+    timer1StartTotalMinutes = timer1Start24Hour * 60 + timer1StartMinutes;
+    if (rtcTotalMinutes > timer1StartTotalMinutes) {
+      timer1ElapsedMinutes = rtcTotalMinutes - timer1StartTotalMinutes;
+    }
+    if (timer1ElapsedMinutes < timer1DurationTotal) {
+      timer1Progress = timer1ElapsedMinutes / timer1DurationTotal;
+    }
   }
 
   void _initStream() {
@@ -156,7 +208,7 @@ class _MainScreenState extends State<MainScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => Settings_v2(
+                    builder: (context) => Settings(
                       device: widget.device,
                       flutterReactiveBle: widget.flutterReactiveBle,
                       connection: widget.connection,
@@ -172,11 +224,59 @@ class _MainScreenState extends State<MainScreen> {
                           characteristicId: timersCharacteristicUuid,
                           serviceId: cpuModuleServiceUuid,
                           deviceId: widget.device.id));
-                  timer1Start = DateTime(today.year, today.month, today.day,
-                      timersData![0], timersData![1]);
-                  timer1Duration = Duration(
-                      minutes: (timersData![2] << 8) | (timersData![3]));
-                  timer1End = timer1Start.add(timer1Duration);
+                  timer1Start24Hour = timersData![0];
+                  if (timer1Start24Hour == 0) {
+                    timer1Start12Hour = 12;
+                    timer1StartAmPm = 'am';
+                  } else if (timer1Start24Hour < 13) {
+                    timer1Start12Hour = timer1Start24Hour;
+                    timer1StartAmPm = 'am';
+                    if (timer1Start12Hour == 12) {
+                      timer1StartAmPm = 'pm';
+                    }
+                  } else {
+                    timer1Start12Hour = timer1Start24Hour - 12;
+                    timer1StartAmPm = 'pm';
+                  }
+                  timer1StartMinutes = timersData![1];
+                  timer1DurationTotal =
+                      (timersData![2] << 8) | (timersData![3]);
+                  timer1DurationHour = (timer1DurationTotal / 60).floor();
+                  timer1DurationMinutes = timer1DurationTotal % 60;
+                  runTime = timer1DurationTotal.toDouble();
+                  timer1EndTotal = timer1Start24Hour * 60 +
+                      timer1StartMinutes +
+                      timer1DurationTotal;
+                  if (timer1EndTotal > 1440) {
+                    timer1EndTotal -= 1440;
+                  }
+                  timer1End24Hour = (timer1EndTotal / 60).floor();
+                  if (timer1End24Hour == 0) {
+                    timer1End12Hour = 12;
+                    timer1EndAmPm = 'am';
+                  } else if (timer1End24Hour < 13) {
+                    timer1End12Hour = timer1End24Hour;
+                    timer1EndAmPm = 'am';
+                    if (timer1End12Hour == 12) {
+                      timer1EndAmPm = 'pm';
+                    }
+                  } else {
+                    timer1End12Hour = timer1End24Hour - 12;
+                    timer1EndAmPm = 'pm';
+                  }
+                  timer1EndMinutes = timer1EndTotal % 60;
+                  rtcTotalMinutes = rtcData![1] + rtcData![2] * 60;
+                  timer1StartTotalMinutes =
+                      timer1Start24Hour * 60 + timer1StartMinutes;
+                  if (rtcTotalMinutes > timer1StartTotalMinutes) {
+                    timer1ElapsedMinutes =
+                        rtcTotalMinutes - timer1StartTotalMinutes;
+                  }
+                  if (timer1ElapsedMinutes < timer1DurationTotal) {
+                    timer1Progress = timer1ElapsedMinutes / timer1DurationTotal;
+                  } else {
+                    timer1Progress = 1.0;
+                  }
                   setState(() {});
                 });
               },
@@ -373,7 +473,17 @@ class _MainScreenState extends State<MainScreen> {
                       rtc12Hour = rtc24Hour - 12;
                       rtcAmPm = 'pm';
                     }
-
+                    rtcTotalMinutes = rtcMinutes + rtc24Hour * 60;
+                    if (rtcTotalMinutes > timer1StartTotalMinutes) {
+                      timer1ElapsedMinutes =
+                          rtcTotalMinutes - timer1StartTotalMinutes;
+                    }
+                    if (timer1ElapsedMinutes < timer1DurationTotal) {
+                      timer1Progress =
+                          timer1ElapsedMinutes / timer1DurationTotal;
+                    } else {
+                      timer1Progress = 1.0;
+                    }
                     return Column(
                       children: [
                         Stack(
@@ -442,7 +552,7 @@ class _MainScreenState extends State<MainScreen> {
                                                   color: Color.fromRGBO(
                                                       53, 62, 71, 1))),
                                           Text(
-                                              '${DateFormat('hh:mm').format(timer1Start)}${DateFormat('a').format(timer1Start).toLowerCase()}',
+                                              '$timer1Start12Hour:${timer1StartMinutes.toString().padLeft(2, '0')}$timer1StartAmPm',
                                               style: const TextStyle(
                                                   fontWeight: FontWeight.bold,
                                                   fontSize: 20.0,
@@ -462,7 +572,7 @@ class _MainScreenState extends State<MainScreen> {
                                                   color: Color.fromRGBO(
                                                       53, 62, 71, 1))),
                                           Text(
-                                              '${DateFormat('hh:mm').format(timer1End)}${DateFormat('a').format(timer1End).toLowerCase()}',
+                                              '$timer1End12Hour:${timer1EndMinutes.toString().padLeft(2, '0')}$timer1EndAmPm',
                                               style: const TextStyle(
                                                   fontWeight: FontWeight.bold,
                                                   fontSize: 20.0,

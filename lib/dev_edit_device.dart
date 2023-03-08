@@ -88,127 +88,150 @@ class _EditDeviceState extends State<EditDevice> {
                 child: Column(
                   children: [
                     const Padding(
-                      padding: EdgeInsets.all(8.0),
+                      padding: EdgeInsets.only(top: 25.0, bottom: 25.0),
                       child: Text(
                         'Settings',
                         style: TextStyle(
                             fontSize: 25.0, fontWeight: FontWeight.bold),
                       ),
                     ),
-                    const Text('Device ID'),
-                    Container(
-                      width: 250,
-                      margin: const EdgeInsets.all(2.0),
-                      padding: const EdgeInsets.symmetric(vertical: 4.0),
-                      child: TextField(
-                        controller: textController,
-                        decoration: InputDecoration(
-                          enabledBorder: OutlineInputBorder(
-                              borderSide: const BorderSide(
-                                  color: Color.fromRGBO(88, 201, 223, 1),
-                                  width: 4.0),
-                              borderRadius: BorderRadius.circular(12.0)),
-                          focusedBorder: OutlineInputBorder(
-                              borderSide: const BorderSide(
-                                  color: Color.fromRGBO(88, 201, 223, 1),
-                                  width: 4.0),
-                              borderRadius: BorderRadius.circular(12.0)),
+                    const Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: Text('Device ID'),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Container(
+                        width: 250,
+                        margin: const EdgeInsets.all(2.0),
+                        padding: const EdgeInsets.symmetric(vertical: 4.0),
+                        child: TextField(
+                          controller: textController,
+                          decoration: InputDecoration(
+                            enabledBorder: OutlineInputBorder(
+                                borderSide: const BorderSide(
+                                    color: Color.fromRGBO(88, 201, 223, 1),
+                                    width: 4.0),
+                                borderRadius: BorderRadius.circular(12.0)),
+                            focusedBorder: OutlineInputBorder(
+                                borderSide: const BorderSide(
+                                    color: Color.fromRGBO(88, 201, 223, 1),
+                                    width: 4.0),
+                                borderRadius: BorderRadius.circular(12.0)),
+                          ),
                         ),
                       ),
                     ),
-                    const Text('Transformer Size'),
-                    Container(
-                      width: 250,
-                      margin: const EdgeInsets.all(2.0),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12.0, vertical: 4.0),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12.0),
-                        border: Border.all(
-                            color: const Color.fromRGBO(88, 201, 223, 1),
-                            width: 4.0),
-                      ),
-                      child: DropdownButtonHideUnderline(
-                        child: DropdownButton<String>(
-                          isExpanded: true,
-                          value: transformerSizeValue,
-                          items: transformerSize.map(buildMenuItem).toList(),
-                          onChanged: (value) => setState(() {
-                            transformerSizeValue = value;
-                          }),
+                    const Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: Text('Transformer Size'),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Container(
+                        width: 250,
+                        margin: const EdgeInsets.all(2.0),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12.0, vertical: 4.0),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12.0),
+                          border: Border.all(
+                              color: const Color.fromRGBO(88, 201, 223, 1),
+                              width: 4.0),
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            isExpanded: true,
+                            value: transformerSizeValue,
+                            items: transformerSize.map(buildMenuItem).toList(),
+                            onChanged: (value) => setState(() {
+                              transformerSizeValue = value;
+                            }),
+                          ),
                         ),
                       ),
                     ),
-                    const Text('Cell Model'),
-                    Container(
-                      width: 250,
-                      margin: const EdgeInsets.all(2.0),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12.0, vertical: 4.0),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12.0),
-                        border: Border.all(
-                            color: const Color.fromRGBO(88, 201, 223, 1),
-                            width: 4.0),
-                      ),
-                      child: DropdownButtonHideUnderline(
-                        child: DropdownButton<String>(
-                          isExpanded: true,
-                          value: cellModelValue,
-                          items: cellModel.map(buildMenuItem).toList(),
-                          onChanged: (value) => setState(() {
-                            cellModelValue = value;
-                          }),
+                    const Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: Text('Cell Model'),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Container(
+                        width: 250,
+                        margin: const EdgeInsets.all(2.0),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12.0, vertical: 4.0),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12.0),
+                          border: Border.all(
+                              color: const Color.fromRGBO(88, 201, 223, 1),
+                              width: 4.0),
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            isExpanded: true,
+                            value: cellModelValue,
+                            items: cellModel.map(buildMenuItem).toList(),
+                            onChanged: (value) => setState(() {
+                              cellModelValue = value;
+                            }),
+                          ),
                         ),
                       ),
                     ),
-                    SizedBox(
-                      width: 100.0,
-                      height: 45.0,
-                      child: ElevatedButton(
-                          onPressed: () async {
-                            final commandCharacteristic =
-                                QualifiedCharacteristic(
-                                    serviceId: cpuModuleServiceUuid,
-                                    characteristicId: commandCharacteristicUuid,
-                                    deviceId: widget.device.id);
-                            var commandResponse = await widget
-                                .flutterReactiveBle
-                                .readCharacteristic(commandCharacteristic);
-                            if (commandResponse[0] == 0) {
-                              await widget.flutterReactiveBle
-                                  .writeCharacteristicWithResponse(
-                                      commandCharacteristic,
-                                      value: [
-                                    240,
-                                    transformerSize
-                                        .indexOf(transformerSizeValue!)
-                                  ]);
-                            }
-                            commandResponse = await widget.flutterReactiveBle
-                                .readCharacteristic(commandCharacteristic);
-                            if (commandResponse[0] == 0) {
-                              await widget.flutterReactiveBle
-                                  .writeCharacteristicWithResponse(
-                                      commandCharacteristic,
-                                      value: [
-                                    241,
-                                    cellModel.indexOf(cellModelValue!)
-                                  ]);
-                            }
-                            await Future.delayed(const Duration(seconds: 1));
-                            cpuDeviceInfoData = await widget.flutterReactiveBle
-                                .readCharacteristic(QualifiedCharacteristic(
-                                    characteristicId:
-                                        cpuDeviceInfoCharacteristicUuid,
-                                    serviceId: cpuModuleServiceUuid,
-                                    deviceId: widget.device.id));
-                            setState(() {});
-                          },
-                          child: const Text('Save',
-                              style: TextStyle(
-                                  fontSize: 26.0,
-                                  fontWeight: FontWeight.bold))),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 80.0),
+                      child: SizedBox(
+                        width: 120.0,
+                        height: 50.0,
+                        child: ElevatedButton(
+                            onPressed: () async {
+                              final commandCharacteristic =
+                                  QualifiedCharacteristic(
+                                      serviceId: cpuModuleServiceUuid,
+                                      characteristicId:
+                                          commandCharacteristicUuid,
+                                      deviceId: widget.device.id);
+                              var commandResponse = await widget
+                                  .flutterReactiveBle
+                                  .readCharacteristic(commandCharacteristic);
+                              if (commandResponse[0] == 0) {
+                                await widget.flutterReactiveBle
+                                    .writeCharacteristicWithResponse(
+                                        commandCharacteristic,
+                                        value: [
+                                      240,
+                                      transformerSize
+                                          .indexOf(transformerSizeValue!)
+                                    ]);
+                              }
+                              commandResponse = await widget.flutterReactiveBle
+                                  .readCharacteristic(commandCharacteristic);
+                              if (commandResponse[0] == 0) {
+                                await widget.flutterReactiveBle
+                                    .writeCharacteristicWithResponse(
+                                        commandCharacteristic,
+                                        value: [
+                                      241,
+                                      cellModel.indexOf(cellModelValue!)
+                                    ]);
+                              }
+                              await Future.delayed(const Duration(seconds: 1));
+                              cpuDeviceInfoData = await widget
+                                  .flutterReactiveBle
+                                  .readCharacteristic(QualifiedCharacteristic(
+                                      characteristicId:
+                                          cpuDeviceInfoCharacteristicUuid,
+                                      serviceId: cpuModuleServiceUuid,
+                                      deviceId: widget.device.id));
+                              setState(() {});
+                            },
+                            child: const Text('Save',
+                                style: TextStyle(
+                                    fontSize: 26.0,
+                                    fontWeight: FontWeight.bold))),
+                      ),
                     ),
                   ],
                 ),

@@ -95,7 +95,10 @@ class _DevSettingsState extends State<DevSettings> {
       body: SettingsList(
         sections: [
           SettingsSection(
-            title: const Text('Developer'),
+            title: const Text(
+              'Developer',
+              style: TextStyle(color: Color.fromRGBO(88, 201, 223, 1)),
+            ),
             tiles: <SettingsTile>[
               SettingsTile.navigation(
                 leading: const Icon(Icons.edit),

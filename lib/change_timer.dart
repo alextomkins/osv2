@@ -69,7 +69,8 @@ class _ChangeTimerState extends State<ChangeTimer> {
     timer1DurationHour = (timer1DurationTotal / 60).floor();
     timer1DurationMinutes = timer1DurationTotal % 60;
     runTime = timer1DurationTotal.toDouble();
-    timer1EndTotal = (timer1Start24Hour * 60) + timer1DurationTotal;
+    timer1EndTotal =
+        timer1Start24Hour * 60 + timer1StartMinutes + timer1DurationTotal;
     if (timer1EndTotal > 1440) {
       timer1EndTotal -= 1440;
     }
@@ -105,6 +106,7 @@ class _ChangeTimerState extends State<ChangeTimer> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         centerTitle: true,
         title: const Text(
@@ -164,8 +166,9 @@ class _ChangeTimerState extends State<ChangeTimer> {
                           }
                           timer1StartMinutes = selectedTime!.minute;
 
-                          timer1EndTotal =
-                              (timer1Start24Hour * 60) + timer1DurationTotal;
+                          timer1EndTotal = timer1Start24Hour * 60 +
+                              timer1StartMinutes +
+                              timer1DurationTotal;
                           if (timer1EndTotal > 1440) {
                             timer1EndTotal -= 1440;
                           }
@@ -190,16 +193,19 @@ class _ChangeTimerState extends State<ChangeTimer> {
                       child: const Text(
                         'Set Time',
                         style: TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 18.0),
+                            fontWeight: FontWeight.bold, fontSize: 22.0),
                       ),
                     ),
                   ),
                 ),
-                const Text(
-                  'Duration',
-                  style: TextStyle(
-                    fontSize: 32,
-                    color: Color.fromRGBO(88, 200, 223, 1),
+                const Padding(
+                  padding: EdgeInsets.only(top: 8.0),
+                  child: Text(
+                    'Duration',
+                    style: TextStyle(
+                      fontSize: 32,
+                      color: Color.fromRGBO(88, 200, 223, 1),
+                    ),
                   ),
                 ),
                 Text('$timer1DurationHour hours $timer1DurationMinutes minutes',
@@ -213,8 +219,9 @@ class _ChangeTimerState extends State<ChangeTimer> {
                       timer1DurationTotal = runTime.floor();
                       timer1DurationHour = (timer1DurationTotal / 60).floor();
                       timer1DurationMinutes = timer1DurationTotal % 60;
-                      timer1EndTotal =
-                          (timer1Start24Hour * 60) + timer1DurationTotal;
+                      timer1EndTotal = timer1Start24Hour * 60 +
+                          timer1StartMinutes +
+                          timer1DurationTotal;
                       if (timer1EndTotal > 1440) {
                         timer1EndTotal -= 1440;
                       }
@@ -252,6 +259,16 @@ class _ChangeTimerState extends State<ChangeTimer> {
                   style: const TextStyle(
                     fontSize: 27,
                     color: Color.fromRGBO(53, 62, 71, 1),
+                  ),
+                ),
+                const Padding(
+                  padding: EdgeInsets.only(top: 8.0, bottom: 8.0),
+                  child: Text(
+                    'Days to Run',
+                    style: TextStyle(
+                      fontSize: 32,
+                      color: Color.fromRGBO(88, 200, 223, 1),
+                    ),
                   ),
                 ),
                 Padding(
@@ -422,12 +439,14 @@ class _ChangeTimerState extends State<ChangeTimer> {
                   ],
                 ),
                 Padding(
-                  padding: const EdgeInsets.only(top: 20.0),
-                  child: ElevatedButton(
-                    onPressed: () async {
-                      String dayOfWeekString = dayOfWeekList.reversed.join();
-                      int dayOfWeekDec = int.parse(dayOfWeekString, radix: 2);
-                      if (selectedTime != null) {
+                  padding: const EdgeInsets.only(top: 50.0),
+                  child: SizedBox(
+                    width: 120.0,
+                    height: 50.0,
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        String dayOfWeekString = dayOfWeekList.reversed.join();
+                        int dayOfWeekDec = int.parse(dayOfWeekString, radix: 2);
                         final commandCharacteristic = QualifiedCharacteristic(
                             serviceId: cpuModuleServiceUuid,
                             characteristicId: commandCharacteristicUuid,
@@ -448,12 +467,12 @@ class _ChangeTimerState extends State<ChangeTimer> {
                               ]);
                         }
                         Navigator.pop(context);
-                      }
-                    },
-                    child: const Text(
-                      'Save',
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold, fontSize: 18.0),
+                      },
+                      child: const Text(
+                        'Save',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 26.0),
+                      ),
                     ),
                   ),
                 ),

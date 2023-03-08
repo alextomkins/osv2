@@ -259,39 +259,3 @@ class _ProbesInfoDialogState extends State<ProbesInfoDialog> {
     );
   }
 }
-
-
-
-                                              // Dialog(
-                                              //   shape: RoundedRectangleBorder(
-                                              //       borderRadius:
-                                              //           BorderRadius.circular(
-                                              //               20)),
-                                              //   elevation: 16,
-                                              //   child: ListView(
-                                              //     shrinkWrap: true,
-                                              //     children: <Widget>[
-                                              //       Column(
-                                              //         children: [
-                                              //           const SizedBox(
-                                              //               height: 20),
-                                              //           const Text(
-                                              //               'Chlorine Module'),
-                                              //           const SizedBox(
-                                              //               height: 20),
-                                              //           Text(
-                                              //               'Average Current: $averageCurrent mA'),
-                                              //           Text(
-                                              //               'Maximum Current: $maxCurrent mA'),
-                                              //           Text(
-                                              //               'Setpoint: $setpoint'),
-                                              //           Text('Period: $period'),
-                                              //           Text(
-                                              //               'Temperature: $temperature\u2103'),
-                                              //           const SizedBox(
-                                              //               height: 20),
-                                              //         ],
-                                              //       ),
-                                              //     ],
-                                              //   ),
-                                              // ),
