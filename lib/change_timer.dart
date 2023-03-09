@@ -47,9 +47,11 @@ class _ChangeTimerState extends State<ChangeTimer> {
   String timer1EndAmPm = '';
   bool isOn = false;
   String testingString = 'testing';
+  List<int>? timersData;
 
   void _initTimers() {
-    timer1Start24Hour = widget.timersData![0];
+    timersData = widget.timersData;
+    timer1Start24Hour = timersData![0];
     if (timer1Start24Hour == 0) {
       timer1Start12Hour = 12;
       timer1StartAmPm = 'am';
@@ -63,9 +65,8 @@ class _ChangeTimerState extends State<ChangeTimer> {
       timer1Start12Hour = timer1Start24Hour - 12;
       timer1StartAmPm = 'pm';
     }
-    timer1StartMinutes = widget.timersData![1];
-    timer1DurationTotal =
-        (widget.timersData![2] << 8) | (widget.timersData![3]);
+    timer1StartMinutes = timersData![1];
+    timer1DurationTotal = (timersData![2] << 8) | (timersData![3]);
     timer1DurationHour = (timer1DurationTotal / 60).floor();
     timer1DurationMinutes = timer1DurationTotal % 60;
     runTime = timer1DurationTotal.toDouble();
@@ -89,7 +90,8 @@ class _ChangeTimerState extends State<ChangeTimer> {
       timer1EndAmPm = 'pm';
     }
     timer1EndMinutes = timer1EndTotal % 60;
-    String initDayOfWeekListBin = widget.timersData![4].toRadixString(2);
+    String initDayOfWeekListBin =
+        timersData![4].toRadixString(2).padLeft(8, '0');
     for (var i = 0; i < initDayOfWeekListBin.length; i++) {
       dayOfWeekList[i] = int.parse(initDayOfWeekListBin[i]);
     }
@@ -445,7 +447,7 @@ class _ChangeTimerState extends State<ChangeTimer> {
                     height: 50.0,
                     child: ElevatedButton(
                       onPressed: () async {
-                        String dayOfWeekString = dayOfWeekList.reversed.join();
+                        String dayOfWeekString = dayOfWeekList.join();
                         int dayOfWeekDec = int.parse(dayOfWeekString, radix: 2);
                         final commandCharacteristic = QualifiedCharacteristic(
                             serviceId: cpuModuleServiceUuid,

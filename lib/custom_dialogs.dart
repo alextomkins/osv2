@@ -89,7 +89,7 @@ class ChlorineInfoDialog extends StatefulWidget {
   final FlutterReactiveBle flutterReactiveBle;
   final int setpoint;
   final int averageCurrent;
-  final int temperature;
+  final double temperature;
   final int maxCurrent;
   final int period;
   const ChlorineInfoDialog(
@@ -112,7 +112,7 @@ class _ChlorineInfoDialogState extends State<ChlorineInfoDialog> {
   bool cancelTimer = false;
   int setpoint = 0;
   int averageCurrent = 0;
-  int temperature = 0;
+  double temperature = 0;
   int maxCurrent = 0;
   int period = 0;
 
@@ -137,7 +137,8 @@ class _ChlorineInfoDialogState extends State<ChlorineInfoDialog> {
         maxCurrent = (chValuesData[2] << 8) | (chValuesData[3]);
         setpoint = chValuesData[4];
         period = (chValuesData[5] << 8) | (chValuesData[6]);
-        temperature = (chValuesData[7] << 8) | (chValuesData[8]);
+        temperature =
+            ((chValuesData[7] << 8) | (chValuesData[8])).toDouble() / 10.0;
         setState(() {});
       }
     });
@@ -166,7 +167,7 @@ class _ChlorineInfoDialogState extends State<ChlorineInfoDialog> {
               Text('Maximum Current: $maxCurrent mA'),
               Text('Setpoint: $setpoint'),
               Text('Period: $period'),
-              Text('Temperature: $temperature\u2103'),
+              Text('Temperature: $temperature \u2103'),
               const SizedBox(height: 20),
             ],
           ),

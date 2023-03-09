@@ -1,5 +1,7 @@
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 
+bool checkBit(int value, int bit) => (value & (1 << bit)) != 0;
+
 final Uuid cpuModuleServiceUuid =
     Uuid.parse('388a4ae7-f276-4321-b227-6cd344f0bb7d');
 final Uuid modbusDevicesServiceUuid =
@@ -18,6 +20,8 @@ final Uuid commandCharacteristicUuid =
     Uuid.parse('6e884d38-1559-4fed-beb6-2c2166df9a06');
 final Uuid timersCharacteristicUuid =
     Uuid.parse('6e884d38-1559-4fed-beb6-2c2166df9a07');
+final Uuid chStatusCharacteristicUuid =
+    Uuid.parse('1deb9dd3-1648-485e-be9b-ad06bc341040');
 final Uuid chValuesCharacteristicUuid =
     Uuid.parse('1deb9dd3-1648-485e-be9b-ad06bc341041');
 final Uuid ozValuesCharacteristicUuid =

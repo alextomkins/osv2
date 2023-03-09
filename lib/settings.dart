@@ -195,7 +195,7 @@ class _SettingsState extends State<Settings> {
               SettingsTile(
                   leading: const Icon(Icons.date_range),
                   title: const Text('Change Date'),
-                  description: const Text('Change the time date'),
+                  description: const Text('Change the date'),
                   onPressed: (context) async {
                     DateTime? selectedDate = await showDatePicker(
                       firstDate: DateTime(2000),
@@ -295,7 +295,7 @@ class _SettingsState extends State<Settings> {
                   leading: const Icon(Icons.developer_mode),
                   title: const Text('Developer Settings'),
                   description: const Text(
-                      'Edit device settings and see developer informaation'),
+                      'Edit device settings and see developer information'),
                   onPressed: (context) async {
                     manufacturerNameData = await widget.flutterReactiveBle
                         .readCharacteristic(QualifiedCharacteristic(
