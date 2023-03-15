@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:osv2/providers/rtc_provider.dart';
+import 'package:osv2/providers/timer1_provider.dart';
 import 'package:osv2/screens/app_bar.dart';
 import 'package:osv2/screens/home_screen.dart';
 import 'package:osv2/utils/utils.dart';
@@ -199,6 +200,9 @@ class _BleScanScreenState extends State<BleScanScreen> {
                             context.read<Rtc>().initStream(context);
                             context.read<Rtc>().computeTime();
                             context.read<Rtc>().initTime();
+                            //context.read<Timer1>().initStream(context);
+                            context.read<Timer1>().computeTimer1();
+                            context.read<Timer1>().initTimers();
                             Navigator.pushAndRemoveUntil(
                               context,
                               MaterialPageRoute(

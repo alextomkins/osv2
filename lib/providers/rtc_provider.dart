@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:osv2/providers/ble_provider.dart';
-import 'package:provider/provider.dart';
 import '../utils/uuid_constants.dart';
 
 final List<String> monthString = [
@@ -47,6 +46,7 @@ class Rtc with ChangeNotifier {
   StreamController _rtcController = StreamController();
   late ConnectedDevice _connectedDevice;
 
+  List<int> get rtcData => _rtcData;
   String get rtcMonth => _rtcMonth;
   int get rtcDay => _rtcDay;
   String get rtcDayOfWeek => _rtcDayOfWeek;
@@ -65,6 +65,14 @@ class Rtc with ChangeNotifier {
       ),
     );
   }
+
+  // void initData(BuildContext context) async {
+  //   _rtcData = await flutterReactiveBle.readCharacteristic(
+  //       QualifiedCharacteristic(
+  //           characteristicId: rtcCharacteristicUuid,
+  //           serviceId: cpuModuleServiceUuid,
+  //           deviceId: device!.id));
+  // }
 
   void initTime() async {
     _rtcData = await flutterReactiveBle.readCharacteristic(
