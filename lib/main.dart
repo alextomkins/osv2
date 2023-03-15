@@ -25,7 +25,7 @@ void main() {
               DiscoveredDevice(
                   id: '',
                   name: '',
-                  serviceData: new Map(),
+                  serviceData: const {},
                   manufacturerData: Uint8List(8),
                   rssi: 0,
                   serviceUuids: [

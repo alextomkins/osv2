@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:osv2/screens/chlorinator_screen.dart';
-import 'package:osv2/screens/home_screen.dart';
 import 'package:osv2/screens/ozone_screen.dart';
 import 'package:osv2/screens/probes_screen.dart';
-
+import '../screens/home_screen.dart';
 import '../utils/my_flutter_app_icons.dart';
+import 'chlorinator_screen.dart';
 
 class AppBarScreen extends StatelessWidget {
   const AppBarScreen({super.key});

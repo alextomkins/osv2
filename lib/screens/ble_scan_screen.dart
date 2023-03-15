@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:osv2/providers/rtc_provider.dart';
+import 'package:osv2/screens/app_bar.dart';
 import 'package:osv2/screens/home_screen.dart';
 import 'package:osv2/utils/utils.dart';
 import 'package:provider/provider.dart';
@@ -197,10 +198,11 @@ class _BleScanScreenState extends State<BleScanScreen> {
                             await Future.delayed(const Duration(seconds: 5));
                             context.read<Rtc>().initStream(context);
                             context.read<Rtc>().computeTime();
+                            context.read<Rtc>().initTime();
                             Navigator.pushAndRemoveUntil(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => const HomeScreen(),
+                                builder: (context) => const AppBarScreen(),
                               ),
                               (Route<dynamic> route) => false,
                             );

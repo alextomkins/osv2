@@ -66,6 +66,35 @@ class Rtc with ChangeNotifier {
     );
   }
 
+  void initTime() async {
+    _rtcData = await flutterReactiveBle.readCharacteristic(
+        QualifiedCharacteristic(
+            characteristicId: rtcCharacteristicUuid,
+            serviceId: cpuModuleServiceUuid,
+            deviceId: device!.id));
+    _rtcMonth = monthString[_rtcData[5] - 1];
+    _rtcDay = _rtcData[4];
+    _rtcDayOfWeek = dayOfWeekString[_rtcData[3]];
+    _rtc24Hour = _rtcData[2];
+    _rtc12Hour = _rtc24Hour;
+    _rtcAmPm = 'am';
+    _rtcMinutes = _rtcData[1];
+    if (_rtc24Hour == 0) {
+      _rtc12Hour = 12;
+      _rtcAmPm = 'am';
+    } else if (_rtc24Hour < 13) {
+      _rtc12Hour = _rtc24Hour;
+      _rtcAmPm = 'am';
+      if (_rtc12Hour == 12) {
+        _rtcAmPm = 'pm';
+      }
+    } else {
+      _rtc12Hour = _rtc24Hour - 12;
+      _rtcAmPm = 'pm';
+    }
+    notifyListeners();
+  }
+
   void computeTime() {
     _rtcController.stream.listen((content) {
       _rtcData = content;
