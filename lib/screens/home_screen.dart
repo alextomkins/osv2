@@ -6,6 +6,7 @@ import '../providers/timer1_provider.dart';
 import '../utils/animations.dart';
 
 bool checkBit(int value, int bit) => (value & (1 << bit)) != 0;
+List<bool> isSelected = [false, false, false];
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -77,6 +78,53 @@ class HomeScreen extends StatelessWidget {
                         fontSize: 20.0,
                         color: Color.fromRGBO(88, 201, 223, 1))),
               ],
+            ),
+          ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 60.0),
+              child: Align(
+                alignment: Alignment.bottomCenter,
+                child: ToggleButtons(
+                  constraints: const BoxConstraints.expand(width: 100),
+                  borderRadius: BorderRadius.circular(10.0),
+                  borderColor: const Color.fromRGBO(53, 62, 71, 1),
+                  isSelected: isSelected,
+                  onPressed: (int buttonSelected) async {
+                    final commandCharacteristic = QualifiedCharacteristic(
+                        serviceId: cpuModuleServiceUuid,
+                        characteristicId: commandCharacteristicUuid,
+                        deviceId: widget.device.id);
+                    final commandResponse = await widget.flutterReactiveBle
+                        .readCharacteristic(commandCharacteristic);
+                    if (commandResponse[0] == 0) {
+                      await widget.flutterReactiveBle
+                          .writeCharacteristicWithResponse(
+                              commandCharacteristic,
+                              value: [(buttonSelected + 100)]);
+                    }
+                    // await Future.delayed(const Duration(seconds: 1));
+                  },
+                  fillColor: const Color.fromRGBO(53, 62, 71, 1),
+                  selectedBorderColor: const Color.fromRGBO(53, 62, 71, 1),
+                  color: const Color.fromRGBO(53, 62, 71, 1),
+                  selectedColor: Colors.white,
+                  children: const <Widget>[
+                    Text(
+                      "Off",
+                      style: TextStyle(fontSize: 20.0),
+                    ),
+                    Text(
+                      "Auto",
+                      style: TextStyle(fontSize: 20.0),
+                    ),
+                    Text(
+                      "On",
+                      style: TextStyle(fontSize: 20.0),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
         ],

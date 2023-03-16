@@ -39,17 +39,9 @@ void main() {
           ),
           ChangeNotifierProxyProvider2<ConnectedDevice, Rtc, Timer1>(
             create: (_) => Timer1(
-              DiscoveredDevice(
-                  id: '',
-                  name: '',
-                  serviceData: const {},
-                  manufacturerData: Uint8List(8),
-                  rssi: 0,
-                  serviceUuids: [
-                    Uuid.parse('762808a9-2cb3-4c0e-be22-8fe3e34134a0')
-                  ]),
-              FlutterReactiveBle(),
-              [],
+              null,
+              null,
+              null,
             ),
             update: (_, discoveredDevice, rtc, timer1) => Timer1(
                 discoveredDevice.device,

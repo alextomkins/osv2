@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
-import 'package:osv2/providers/ble_provider.dart';
 import '../utils/uuid_constants.dart';
 
 final List<String> monthString = [
@@ -43,8 +42,7 @@ class Rtc with ChangeNotifier {
   int _rtc12Hour = 0;
   String _rtcAmPm = '';
   int _rtcMinutes = 0;
-  StreamController _rtcController = StreamController();
-  late ConnectedDevice _connectedDevice;
+  final StreamController _rtcController = StreamController();
 
   List<int> get rtcData => _rtcData;
   String get rtcMonth => _rtcMonth;
@@ -64,6 +62,8 @@ class Rtc with ChangeNotifier {
             deviceId: device!.id),
       ),
     );
+    initTime();
+    computeTime();
   }
 
   // void initData(BuildContext context) async {

@@ -7,10 +7,14 @@ import '../utils/uuid_constants.dart';
 
 class Timer1 with ChangeNotifier {
   DiscoveredDevice? device;
-  FlutterReactiveBle flutterReactiveBle;
-  List<int> rtcData;
+  FlutterReactiveBle? flutterReactiveBle;
+  List<int>? rtcData;
 
-  Timer1(this.device, this.flutterReactiveBle, this.rtcData);
+  Timer1(this.device, this.flutterReactiveBle, this.rtcData) {
+    if (device != null) {
+      initTimers();
+    }
+  }
 
   double _timer1Progress = 0.0;
   int _timer1Start24Hour = 0;
@@ -52,13 +56,14 @@ class Timer1 with ChangeNotifier {
 
   void initStream(BuildContext context) {
     _timersController.addStream(
-      flutterReactiveBle.subscribeToCharacteristic(
+      flutterReactiveBle!.subscribeToCharacteristic(
         QualifiedCharacteristic(
             characteristicId: timersCharacteristicUuid,
             serviceId: cpuModuleServiceUuid,
             deviceId: device!.id),
       ),
     );
+    computeTimer1();
   }
 
   // void readTimers(BuildContext context) async {
@@ -70,7 +75,7 @@ class Timer1 with ChangeNotifier {
   // }
 
   void initTimers() async {
-    _timersData = await flutterReactiveBle.readCharacteristic(
+    _timersData = await flutterReactiveBle!.readCharacteristic(
         QualifiedCharacteristic(
             characteristicId: timersCharacteristicUuid,
             serviceId: cpuModuleServiceUuid,
@@ -114,14 +119,14 @@ class Timer1 with ChangeNotifier {
       _timer1EndAmPm = 'pm';
     }
     _timer1EndMinutes = _timer1EndTotal % 60;
-    _rtcTotalMinutes = rtcData[1] + rtcData[2] * 60;
-    _timer1StartTotalMinutes = _timer1Start24Hour * 60 + _timer1StartMinutes;
-    if (_rtcTotalMinutes > _timer1StartTotalMinutes) {
-      _timer1ElapsedMinutes = _rtcTotalMinutes - _timer1StartTotalMinutes;
-    }
-    if (_timer1ElapsedMinutes < _timer1DurationTotal) {
-      _timer1Progress = _timer1ElapsedMinutes / _timer1DurationTotal;
-    }
+    // _rtcTotalMinutes = rtcData[1] + rtcData[2] * 60;
+    // _timer1StartTotalMinutes = _timer1Start24Hour * 60 + _timer1StartMinutes;
+    // if (_rtcTotalMinutes > _timer1StartTotalMinutes) {
+    //   _timer1ElapsedMinutes = _rtcTotalMinutes - _timer1StartTotalMinutes;
+    // }
+    // if (_timer1ElapsedMinutes < _timer1DurationTotal) {
+    //   _timer1Progress = _timer1ElapsedMinutes / _timer1DurationTotal;
+    // }
     notifyListeners();
   }
 
@@ -167,7 +172,7 @@ class Timer1 with ChangeNotifier {
         _timer1EndAmPm = 'pm';
       }
       _timer1EndMinutes = _timer1EndTotal % 60;
-      _rtcTotalMinutes = rtcData[1] + rtcData[2] * 60;
+      _rtcTotalMinutes = rtcData![1] + rtcData![2] * 60;
       _timer1StartTotalMinutes = _timer1Start24Hour * 60 + _timer1StartMinutes;
       if (_rtcTotalMinutes > _timer1StartTotalMinutes) {
         _timer1ElapsedMinutes = _rtcTotalMinutes - _timer1StartTotalMinutes;
