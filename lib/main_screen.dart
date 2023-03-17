@@ -9,24 +9,49 @@ import 'package:osv2/settings.dart';
 import 'package:osv2/uuid_constants.dart';
 import 'my_flutter_app_icons.dart';
 
+final List<String> monthString = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December"
+];
+
+final List<String> dayOfWeekString = [
+  'Sunday',
+  'Monday',
+  'Tuesday',
+  'Wednesday',
+  'Thursday',
+  'Friday',
+  'Saturday',
+];
+
 class MainScreen extends StatefulWidget {
   final DiscoveredDevice device;
   final FlutterReactiveBle flutterReactiveBle;
   final StreamSubscription<ConnectionStateUpdate>? connection;
-  final List<int>? runModeData;
-  final List<int>? rtcData;
-  final List<int>? cpuStatusData;
-  final List<int>? timersData;
+  final List<int> runModeData;
+  final List<int> rtcData;
+  final List<int> cpuStatusData;
+  final List<int> timersData;
 
   const MainScreen(
       {Key? key,
       required this.device,
       required this.flutterReactiveBle,
       required this.connection,
-      this.runModeData,
-      this.rtcData,
-      this.cpuStatusData,
-      this.timersData})
+      required this.runModeData,
+      required this.rtcData,
+      required this.cpuStatusData,
+      required this.timersData})
       : super(key: key);
 
   @override
@@ -37,29 +62,11 @@ class _MainScreenState extends State<MainScreen> {
   StreamController cpuStatusController = StreamController();
   StreamController rtcController = StreamController();
   StreamController runModeController = StreamController();
-  List<int>? runModeData = [0, 0];
-  List<int>? rtcData = [0, 0, 0, 0, 0, 1, 0];
-  List<int>? cpuStatusData = [0, 0];
-  List<int>? timersData = [
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0
-  ];
+  StreamController timersController = StreamController();
+  List<int> runModeData = [0, 0];
+  List<int> rtcData = [0, 0, 0, 0, 0, 1, 0];
+  List<int> cpuStatusData = [0, 0];
+  List<int> timersData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
   int runMode = 0;
   double timer1Progress = 0.0;
   Timer? timer;
@@ -86,13 +93,40 @@ class _MainScreenState extends State<MainScreen> {
   int setPoint = 0;
   int period = 0;
   double temperature = 0;
+  String rtcMonth = '';
+  int rtcDay = 0;
+  String rtcDayOfWeek = '';
+  int rtc24Hour = 0;
+  int rtc12Hour = 0;
+  String rtcAmPm = '';
+  int rtcMinutes = 0;
 
   void _initData() {
     cpuStatusData = widget.cpuStatusData;
     rtcData = widget.rtcData;
+    rtcMonth = monthString[rtcData[5] - 1];
+    rtcDay = rtcData[4];
+    rtcDayOfWeek = dayOfWeekString[rtcData[3]];
+    rtc24Hour = rtcData[2];
+    rtc12Hour = rtc24Hour;
+    rtcAmPm = 'am';
+    rtcMinutes = rtcData[1];
+    if (rtc24Hour == 0) {
+      rtc12Hour = 12;
+      rtcAmPm = 'am';
+    } else if (rtc24Hour < 13) {
+      rtc12Hour = rtc24Hour;
+      rtcAmPm = 'am';
+      if (rtc12Hour == 12) {
+        rtcAmPm = 'pm';
+      }
+    } else {
+      rtc12Hour = rtc24Hour - 12;
+      rtcAmPm = 'pm';
+    }
     runModeData = widget.runModeData;
     timersData = widget.timersData;
-    timer1Start24Hour = timersData![0];
+    timer1Start24Hour = timersData[0];
     if (timer1Start24Hour == 0) {
       timer1Start12Hour = 12;
       timer1StartAmPm = 'am';
@@ -106,8 +140,8 @@ class _MainScreenState extends State<MainScreen> {
       timer1Start12Hour = timer1Start24Hour - 12;
       timer1StartAmPm = 'pm';
     }
-    timer1StartMinutes = timersData![1];
-    timer1DurationTotal = (timersData![2] << 8) | (timersData![3]);
+    timer1StartMinutes = timersData[1];
+    timer1DurationTotal = (timersData[2] << 8) | (timersData[3]);
     timer1DurationHour = (timer1DurationTotal / 60).floor();
     timer1DurationMinutes = timer1DurationTotal % 60;
     runTime = timer1DurationTotal.toDouble();
@@ -131,7 +165,7 @@ class _MainScreenState extends State<MainScreen> {
       timer1EndAmPm = 'pm';
     }
     timer1EndMinutes = timer1EndTotal % 60;
-    rtcTotalMinutes = rtcData![1] + rtcData![2] * 60;
+    rtcTotalMinutes = rtcData[1] + rtcData[2] * 60;
     timer1StartTotalMinutes = timer1Start24Hour * 60 + timer1StartMinutes;
     int totalTimeMinutes;
     int elapsedTimeMinutes;
@@ -180,13 +214,19 @@ class _MainScreenState extends State<MainScreen> {
               serviceId: cpuModuleServiceUuid,
               deviceId: widget.device.id)));
     }
+    if (timersController.hasListener == false) {
+      timersController.addStream(widget.flutterReactiveBle
+          .subscribeToCharacteristic(QualifiedCharacteristic(
+              characteristicId: timersCharacteristicUuid,
+              serviceId: cpuModuleServiceUuid,
+              deviceId: widget.device.id)));
+    }
     setState(() {});
   }
 
   @override
   void initState() {
     super.initState();
-    setState(() {});
     _initData();
     _initStream();
 
@@ -239,87 +279,7 @@ class _MainScreenState extends State<MainScreen> {
                         timersData: timersData,
                       ),
                     ),
-                  ).then((_) async {
-                    timersData = await widget.flutterReactiveBle
-                        .readCharacteristic(QualifiedCharacteristic(
-                            characteristicId: timersCharacteristicUuid,
-                            serviceId: cpuModuleServiceUuid,
-                            deviceId: widget.device.id));
-                    timer1Start24Hour = timersData![0];
-                    if (timer1Start24Hour == 0) {
-                      timer1Start12Hour = 12;
-                      timer1StartAmPm = 'am';
-                    } else if (timer1Start24Hour < 13) {
-                      timer1Start12Hour = timer1Start24Hour;
-                      timer1StartAmPm = 'am';
-                      if (timer1Start12Hour == 12) {
-                        timer1StartAmPm = 'pm';
-                      }
-                    } else {
-                      timer1Start12Hour = timer1Start24Hour - 12;
-                      timer1StartAmPm = 'pm';
-                    }
-                    timer1StartMinutes = timersData![1];
-                    timer1DurationTotal =
-                        (timersData![2] << 8) | (timersData![3]);
-                    timer1DurationHour = (timer1DurationTotal / 60).floor();
-                    timer1DurationMinutes = timer1DurationTotal % 60;
-                    runTime = timer1DurationTotal.toDouble();
-                    timer1EndTotal = timer1Start24Hour * 60 +
-                        timer1StartMinutes +
-                        timer1DurationTotal;
-                    if (timer1EndTotal > 1440) {
-                      timer1EndTotal -= 1440;
-                    }
-                    timer1End24Hour = (timer1EndTotal / 60).floor();
-                    if (timer1End24Hour == 0) {
-                      timer1End12Hour = 12;
-                      timer1EndAmPm = 'am';
-                    } else if (timer1End24Hour < 13) {
-                      timer1End12Hour = timer1End24Hour;
-                      timer1EndAmPm = 'am';
-                      if (timer1End12Hour == 12) {
-                        timer1EndAmPm = 'pm';
-                      }
-                    } else {
-                      timer1End12Hour = timer1End24Hour - 12;
-                      timer1EndAmPm = 'pm';
-                    }
-                    timer1EndMinutes = timer1EndTotal % 60;
-                    rtcTotalMinutes = rtcData![1] + rtcData![2] * 60;
-                    timer1StartTotalMinutes =
-                        timer1Start24Hour * 60 + timer1StartMinutes;
-
-                    int totalTimeMinutes;
-                    int elapsedTimeMinutes;
-                    if (timer1EndTotal > timer1StartTotalMinutes) {
-                      totalTimeMinutes =
-                          timer1EndTotal - timer1StartTotalMinutes;
-                      if (rtcTotalMinutes < timer1StartTotalMinutes) {
-                        elapsedTimeMinutes = 0;
-                      } else if (rtcTotalMinutes < timer1EndTotal) {
-                        elapsedTimeMinutes =
-                            rtcTotalMinutes - timer1StartTotalMinutes;
-                      } else {
-                        elapsedTimeMinutes = totalTimeMinutes;
-                      }
-                    } else {
-                      totalTimeMinutes =
-                          1440 - (timer1StartTotalMinutes - timer1EndTotal);
-                      if (rtcTotalMinutes > timer1StartTotalMinutes) {
-                        elapsedTimeMinutes =
-                            rtcTotalMinutes - timer1StartTotalMinutes;
-                      } else if (rtcTotalMinutes < timer1EndTotal) {
-                        elapsedTimeMinutes = totalTimeMinutes -
-                            (timer1EndTotal - timer1StartTotalMinutes);
-                      } else {
-                        elapsedTimeMinutes = 0;
-                      }
-                    }
-                    timer1Progress = elapsedTimeMinutes / totalTimeMinutes;
-
-                    setState(() {});
-                  });
+                  );
                 },
                 icon: const Icon(Icons.settings)),
           ],
@@ -342,14 +302,145 @@ class _MainScreenState extends State<MainScreen> {
         ),
         body: TabBarView(
           children: [
-            HomeScreen(
-              device: widget.device,
-              flutterReactiveBle: widget.flutterReactiveBle,
-              connection: widget.connection,
-              cpuStatusData: cpuStatusData,
-              rtcData: rtcData,
-              runModeData: runModeData,
-              timersData: timersData,
+            StreamBuilder(
+              stream: runModeController.stream,
+              builder: (context, runModeSnapshot) {
+                if (runModeSnapshot.hasData) {
+                  runModeData = runModeSnapshot.data;
+                }
+                runMode = runModeData[0] & 0xF;
+                return StreamBuilder(
+                  stream: rtcController.stream,
+                  builder: (BuildContext context,
+                      AsyncSnapshot<dynamic> rtcSnapshot) {
+                    if (rtcSnapshot.hasData) {
+                      rtcData = rtcSnapshot.data;
+                    }
+                    String rtcMonth = monthString[rtcData[5] - 1];
+                    int rtcDay = rtcData[4];
+                    String rtcDayOfWeek = dayOfWeekString[rtcData[3]];
+                    int rtc24Hour = rtcData[2];
+                    int rtc12Hour = rtc24Hour;
+                    String rtcAmPm = 'am';
+                    int rtcMinutes = rtcData[1];
+                    if (rtc24Hour == 0) {
+                      rtc12Hour = 12;
+                      rtcAmPm = 'am';
+                    } else if (rtc24Hour < 13) {
+                      rtc12Hour = rtc24Hour;
+                      rtcAmPm = 'am';
+                      if (rtc12Hour == 12) {
+                        rtcAmPm = 'pm';
+                      }
+                    } else {
+                      rtc12Hour = rtc24Hour - 12;
+                      rtcAmPm = 'pm';
+                    }
+                    return StreamBuilder(
+                      stream: timersController.stream,
+                      builder: (context, timersSnapshot) {
+                        if (timersSnapshot.hasData) {
+                          timersData = timersSnapshot.data;
+                        }
+                        timer1Start24Hour = timersData[0];
+                        if (timer1Start24Hour == 0) {
+                          timer1Start12Hour = 12;
+                          timer1StartAmPm = 'am';
+                        } else if (timer1Start24Hour < 13) {
+                          timer1Start12Hour = timer1Start24Hour;
+                          timer1StartAmPm = 'am';
+                          if (timer1Start12Hour == 12) {
+                            timer1StartAmPm = 'pm';
+                          }
+                        } else {
+                          timer1Start12Hour = timer1Start24Hour - 12;
+                          timer1StartAmPm = 'pm';
+                        }
+                        timer1StartMinutes = timersData[1];
+                        timer1DurationTotal =
+                            (timersData[2] << 8) | (timersData[3]);
+                        timer1DurationHour = (timer1DurationTotal / 60).floor();
+                        timer1DurationMinutes = timer1DurationTotal % 60;
+                        runTime = timer1DurationTotal.toDouble();
+                        timer1EndTotal = timer1Start24Hour * 60 +
+                            timer1StartMinutes +
+                            timer1DurationTotal;
+                        if (timer1EndTotal > 1440) {
+                          timer1EndTotal -= 1440;
+                        }
+                        timer1End24Hour = (timer1EndTotal / 60).floor();
+                        if (timer1End24Hour == 0) {
+                          timer1End12Hour = 12;
+                          timer1EndAmPm = 'am';
+                        } else if (timer1End24Hour < 13) {
+                          timer1End12Hour = timer1End24Hour;
+                          timer1EndAmPm = 'am';
+                          if (timer1End12Hour == 12) {
+                            timer1EndAmPm = 'pm';
+                          }
+                        } else {
+                          timer1End12Hour = timer1End24Hour - 12;
+                          timer1EndAmPm = 'pm';
+                        }
+                        timer1EndMinutes = timer1EndTotal % 60;
+                        rtcTotalMinutes = rtcData[1] + rtcData[2] * 60;
+                        timer1StartTotalMinutes =
+                            timer1Start24Hour * 60 + timer1StartMinutes;
+                        int totalTimeMinutes;
+                        int elapsedTimeMinutes;
+                        if (timer1EndTotal > timer1StartTotalMinutes) {
+                          totalTimeMinutes =
+                              timer1EndTotal - timer1StartTotalMinutes;
+                          if (rtcTotalMinutes < timer1StartTotalMinutes) {
+                            elapsedTimeMinutes = 0;
+                          } else if (rtcTotalMinutes < timer1EndTotal) {
+                            elapsedTimeMinutes =
+                                rtcTotalMinutes - timer1StartTotalMinutes;
+                          } else {
+                            elapsedTimeMinutes = totalTimeMinutes;
+                          }
+                        } else {
+                          totalTimeMinutes =
+                              1440 - (timer1StartTotalMinutes - timer1EndTotal);
+                          if (rtcTotalMinutes > timer1StartTotalMinutes) {
+                            elapsedTimeMinutes =
+                                rtcTotalMinutes - timer1StartTotalMinutes;
+                          } else if (rtcTotalMinutes < timer1EndTotal) {
+                            //print(totalTimeMinutes);
+                            //print(timer1EndTotal);
+                            //print(timer1StartTotalMinutes);
+                            elapsedTimeMinutes = totalTimeMinutes -
+                                (timer1EndTotal - rtcTotalMinutes);
+                          } else {
+                            elapsedTimeMinutes = 0;
+                          }
+                        }
+                        timer1Progress = elapsedTimeMinutes / totalTimeMinutes;
+                        return HomeScreen(
+                          device: widget.device,
+                          flutterReactiveBle: widget.flutterReactiveBle,
+                          connection: widget.connection,
+                          rtc12Hour: rtc12Hour,
+                          rtcAmPm: rtcAmPm,
+                          rtcDay: rtcDay,
+                          rtcDayOfWeek: rtcDayOfWeek,
+                          rtcMinutes: rtcMinutes,
+                          rtcMonth: rtcMonth,
+                          cpuStatusData: cpuStatusData,
+                          runMode: runMode,
+                          timer1End12Hour: timer1End12Hour,
+                          timer1EndAmPm: timer1EndAmPm,
+                          timer1EndMinutes: timer1EndMinutes,
+                          timer1Progress: timer1Progress,
+                          timer1Start12Hour: timer1Start12Hour,
+                          timer1StartAmPm: timer1StartAmPm,
+                          timer1StartMinutes: timer1StartMinutes,
+                        );
+                      },
+                    );
+                  },
+                );
+              },
             ),
             Chlorinator(
               chAverageCurrent: averageCurrent,

@@ -43,10 +43,10 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-List<int>? initRunMode = [0, 0];
-List<int>? initRtc = [0, 0, 0, 0, 0, 1, 0];
-List<int>? initCpuStatus = [0, 0];
-List<int>? initTimers = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+List<int> initRunMode = [0, 0];
+List<int> initRtc = [0, 0, 0, 0, 0, 1, 0];
+List<int> initCpuStatus = [0, 0];
+List<int> initTimers = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
 class _MyHomePageState extends State<MyHomePage> {
   int index = -1;
