@@ -80,6 +80,12 @@ class _MainScreenState extends State<MainScreen> {
   int timer1ElapsedMinutes = 0;
   int rtcTotalMinutes = 0;
   int timer1StartTotalMinutes = 0;
+  List<int> chStatusData = [];
+  int averageCurrent = 0;
+  int maxCurrent = 0;
+  int setPoint = 0;
+  int period = 0;
+  double temperature = 0;
 
   void _initData() {
     cpuStatusData = widget.cpuStatusData;
@@ -127,12 +133,29 @@ class _MainScreenState extends State<MainScreen> {
     timer1EndMinutes = timer1EndTotal % 60;
     rtcTotalMinutes = rtcData![1] + rtcData![2] * 60;
     timer1StartTotalMinutes = timer1Start24Hour * 60 + timer1StartMinutes;
-    if (rtcTotalMinutes > timer1StartTotalMinutes) {
-      timer1ElapsedMinutes = rtcTotalMinutes - timer1StartTotalMinutes;
+    int totalTimeMinutes;
+    int elapsedTimeMinutes;
+    if (timer1EndTotal > timer1StartTotalMinutes) {
+      totalTimeMinutes = timer1EndTotal - timer1StartTotalMinutes;
+      if (rtcTotalMinutes < timer1StartTotalMinutes) {
+        elapsedTimeMinutes = 0;
+      } else if (rtcTotalMinutes < timer1EndTotal) {
+        elapsedTimeMinutes = rtcTotalMinutes - timer1StartTotalMinutes;
+      } else {
+        elapsedTimeMinutes = totalTimeMinutes;
+      }
+    } else {
+      totalTimeMinutes = 1440 - (timer1StartTotalMinutes - timer1EndTotal);
+      if (rtcTotalMinutes > timer1StartTotalMinutes) {
+        elapsedTimeMinutes = rtcTotalMinutes - timer1StartTotalMinutes;
+      } else if (rtcTotalMinutes < timer1EndTotal) {
+        elapsedTimeMinutes =
+            totalTimeMinutes - (timer1EndTotal - timer1StartTotalMinutes);
+      } else {
+        elapsedTimeMinutes = 0;
+      }
     }
-    if (timer1ElapsedMinutes < timer1DurationTotal) {
-      timer1Progress = timer1ElapsedMinutes / timer1DurationTotal;
-    }
+    timer1Progress = elapsedTimeMinutes / totalTimeMinutes;
   }
 
   void _initStream() {
@@ -166,6 +189,26 @@ class _MainScreenState extends State<MainScreen> {
     setState(() {});
     _initData();
     _initStream();
+
+    Timer.periodic(const Duration(seconds: 1), (timer) async {
+      List<int> chValuesData = await widget.flutterReactiveBle
+          .readCharacteristic(QualifiedCharacteristic(
+              characteristicId: chValuesCharacteristicUuid,
+              serviceId: modbusDevicesServiceUuid,
+              deviceId: widget.device.id));
+      chStatusData = await widget.flutterReactiveBle.readCharacteristic(
+          QualifiedCharacteristic(
+              characteristicId: chStatusCharacteristicUuid,
+              serviceId: modbusDevicesServiceUuid,
+              deviceId: widget.device.id));
+      averageCurrent = (chValuesData[0] << 8) | (chValuesData[1]);
+      maxCurrent = (chValuesData[2] << 8) | (chValuesData[3]);
+      setPoint = chValuesData[4];
+      period = (chValuesData[5] << 8) | (chValuesData[6]);
+      temperature =
+          ((chValuesData[7] << 8) | (chValuesData[8])).toDouble() / 10;
+      setState(() {});
+    });
   }
 
   @override
@@ -246,16 +289,35 @@ class _MainScreenState extends State<MainScreen> {
                     rtcTotalMinutes = rtcData![1] + rtcData![2] * 60;
                     timer1StartTotalMinutes =
                         timer1Start24Hour * 60 + timer1StartMinutes;
-                    if (rtcTotalMinutes > timer1StartTotalMinutes) {
-                      timer1ElapsedMinutes =
-                          rtcTotalMinutes - timer1StartTotalMinutes;
-                    }
-                    if (timer1ElapsedMinutes < timer1DurationTotal) {
-                      timer1Progress =
-                          timer1ElapsedMinutes / timer1DurationTotal;
+
+                    int totalTimeMinutes;
+                    int elapsedTimeMinutes;
+                    if (timer1EndTotal > timer1StartTotalMinutes) {
+                      totalTimeMinutes =
+                          timer1EndTotal - timer1StartTotalMinutes;
+                      if (rtcTotalMinutes < timer1StartTotalMinutes) {
+                        elapsedTimeMinutes = 0;
+                      } else if (rtcTotalMinutes < timer1EndTotal) {
+                        elapsedTimeMinutes =
+                            rtcTotalMinutes - timer1StartTotalMinutes;
+                      } else {
+                        elapsedTimeMinutes = totalTimeMinutes;
+                      }
                     } else {
-                      timer1Progress = 1.0;
+                      totalTimeMinutes =
+                          1440 - (timer1StartTotalMinutes - timer1EndTotal);
+                      if (rtcTotalMinutes > timer1StartTotalMinutes) {
+                        elapsedTimeMinutes =
+                            rtcTotalMinutes - timer1StartTotalMinutes;
+                      } else if (rtcTotalMinutes < timer1EndTotal) {
+                        elapsedTimeMinutes = totalTimeMinutes -
+                            (timer1EndTotal - timer1StartTotalMinutes);
+                      } else {
+                        elapsedTimeMinutes = 0;
+                      }
                     }
+                    timer1Progress = elapsedTimeMinutes / totalTimeMinutes;
+
                     setState(() {});
                   });
                 },
@@ -290,9 +352,12 @@ class _MainScreenState extends State<MainScreen> {
               timersData: timersData,
             ),
             Chlorinator(
-              device: widget.device,
-              flutterReactiveBle: widget.flutterReactiveBle,
-              connection: widget.connection,
+              chAverageCurrent: averageCurrent,
+              chMaxCurrent: maxCurrent,
+              chSetPoint: setPoint,
+              chPeriod: period,
+              chTemperature: temperature,
+              chStatusData: chStatusData,
             ),
             const Ozone(),
             const Probes(),

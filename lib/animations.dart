@@ -5,10 +5,10 @@ class RunningAnimation extends StatefulWidget {
   const RunningAnimation({super.key});
 
   @override
-  _RunningAnimationState createState() => _RunningAnimationState();
+  RunningAnimationState createState() => RunningAnimationState();
 }
 
-class _RunningAnimationState extends State<RunningAnimation>
+class RunningAnimationState extends State<RunningAnimation>
     with TickerProviderStateMixin {
   late Animation<double> animation;
   late AnimationController controller;

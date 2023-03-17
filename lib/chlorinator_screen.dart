@@ -1,98 +1,67 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:osv2/uuid_constants.dart';
 
 TextStyle mainTitle =
-    TextStyle(color: Color.fromRGBO(53, 62, 71, 1), fontSize: 24.0);
+    const TextStyle(color: Color.fromRGBO(53, 62, 71, 1), fontSize: 24.0);
 TextStyle subTitles =
-    TextStyle(color: Color.fromRGBO(53, 62, 71, 1), fontSize: 18.0);
+    const TextStyle(color: Color.fromRGBO(53, 62, 71, 1), fontSize: 18.0);
 TextStyle values =
-    TextStyle(color: Color.fromRGBO(88, 201, 223, 1), fontSize: 12.0);
-TextStyle valuesGreen = TextStyle(color: Colors.green, fontSize: 12.0);
-TextStyle valuesRed = TextStyle(color: Colors.red, fontSize: 12.0);
+    const TextStyle(color: Color.fromRGBO(88, 201, 223, 1), fontSize: 12.0);
+TextStyle valuesGreen = const TextStyle(color: Colors.green, fontSize: 12.0);
+TextStyle valuesRed = const TextStyle(color: Colors.red, fontSize: 12.0);
 
 class Chlorinator extends StatefulWidget {
-  final DiscoveredDevice device;
-  final FlutterReactiveBle flutterReactiveBle;
-  final StreamSubscription<ConnectionStateUpdate>? connection;
-  const Chlorinator(
-      {super.key,
-      required this.device,
-      required this.flutterReactiveBle,
-      required this.connection});
+  final int chAverageCurrent;
+  final int chMaxCurrent;
+  final int chSetPoint;
+  final int chPeriod;
+  final double chTemperature;
+  final List<int> chStatusData;
+
+  const Chlorinator({
+    super.key,
+    required this.chAverageCurrent,
+    required this.chMaxCurrent,
+    required this.chSetPoint,
+    required this.chPeriod,
+    required this.chTemperature,
+    required this.chStatusData,
+  });
 
   @override
   State<Chlorinator> createState() => _ChlorinatorState();
 }
 
 class _ChlorinatorState extends State<Chlorinator> {
-  int averageCurrent = 0;
-  int maxCurrent = 0;
-  int setpoint = 0;
-  int period = 0;
-  double temperature = 0.0;
-  List<int> chStatusData = [0, 0];
-  bool cancelTimer = false;
-
-  @override
-  void dispose() {
-    super.dispose();
-    cancelTimer = true;
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    Timer.periodic(const Duration(seconds: 1), (timer) async {
-      if (cancelTimer == true) {
-        timer.cancel();
-      } else {
-        List<int> chValuesData = await widget.flutterReactiveBle
-            .readCharacteristic(QualifiedCharacteristic(
-                characteristicId: chValuesCharacteristicUuid,
-                serviceId: modbusDevicesServiceUuid,
-                deviceId: widget.device.id));
-        chStatusData = await widget.flutterReactiveBle.readCharacteristic(
-            QualifiedCharacteristic(
-                characteristicId: chStatusCharacteristicUuid,
-                serviceId: modbusDevicesServiceUuid,
-                deviceId: widget.device.id));
-        averageCurrent = (chValuesData[0] << 8) | (chValuesData[1]);
-        maxCurrent = (chValuesData[2] << 8) | (chValuesData[3]);
-        setpoint = chValuesData[4];
-        period = (chValuesData[5] << 8) | (chValuesData[6]);
-        temperature =
-            ((chValuesData[7] << 8) | (chValuesData[8])).toDouble() / 10;
-        setState(() {});
-      }
-    });
-    setState(() {});
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         body: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
           'Chlorine Module',
           style: mainTitle,
+          textAlign: TextAlign.center,
         ),
-        Text(
-          'Average Current',
-          style: subTitles,
-        ),
-        Text(
-          '$averageCurrent mA',
-          style: values,
+        Row(
+          children: [
+            Text(
+              'Average Current',
+              style: subTitles,
+            ),
+            Text(
+              '${widget.chAverageCurrent} mA',
+              style: values,
+            ),
+          ],
         ),
         Text(
           'Maximum Current',
           style: subTitles,
         ),
         Text(
-          '$maxCurrent mA',
+          '${widget.chMaxCurrent} mA',
           style: values,
         ),
         Text(
@@ -100,7 +69,7 @@ class _ChlorinatorState extends State<Chlorinator> {
           style: subTitles,
         ),
         Text(
-          '$setpoint',
+          '${widget.chSetPoint}',
           style: values,
         ),
         Text(
@@ -108,7 +77,7 @@ class _ChlorinatorState extends State<Chlorinator> {
           style: subTitles,
         ),
         Text(
-          '$period',
+          '${widget.chPeriod}',
           style: values,
         ),
         Text(
@@ -116,10 +85,10 @@ class _ChlorinatorState extends State<Chlorinator> {
           style: subTitles,
         ),
         Text(
-          '$temperature \u2103',
+          '${widget.chTemperature} \u2103',
           style: values,
         ),
-        checkBit(chStatusData[0], 0)
+        checkBit(widget.chStatusData[0], 0)
             ? Text(
                 'Running',
                 style: valuesGreen,
@@ -128,7 +97,7 @@ class _ChlorinatorState extends State<Chlorinator> {
                 'Not Running',
                 style: valuesRed,
               ),
-        !checkBit(chStatusData[0], 1)
+        !checkBit(widget.chStatusData[0], 1)
             ? Text(
                 'Water Detected',
                 style: valuesGreen,
@@ -137,21 +106,21 @@ class _ChlorinatorState extends State<Chlorinator> {
                 'No Water',
                 style: valuesRed,
               ),
-        !checkBit(chStatusData[0], 2)
+        !checkBit(widget.chStatusData[0], 2)
             ? Text(
-                'Fine Heat',
+                'Temperature Good',
                 style: valuesGreen,
               )
             : Text(
                 'Overheated',
                 style: valuesRed,
               ),
-        checkBit(chStatusData[0], 3)
+        checkBit(widget.chStatusData[0], 3)
             ? Text(
                 'Low Salt',
                 style: valuesRed,
               )
-            : checkBit(chStatusData[0], 4)
+            : checkBit(widget.chStatusData[0], 4)
                 ? Text(
                     'High Salt',
                     style: valuesRed,
@@ -160,7 +129,7 @@ class _ChlorinatorState extends State<Chlorinator> {
                     'Salt Level Good',
                     style: valuesGreen,
                   ),
-        !checkBit(chStatusData[0], 0)
+        !checkBit(widget.chStatusData[0], 0)
             ? Text(
                 'Current Detected',
                 style: valuesGreen,

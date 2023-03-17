@@ -69,9 +69,11 @@ class _HomeScreenState extends State<HomeScreen>
   Stream<dynamic>? cpuStatusSubscriptionStream;
   Stream<dynamic>? rtcSubscriptionStream;
   Stream<dynamic>? runModeSubscriptionStream;
+  Stream<dynamic>? timersSubscriptionStream;
   StreamController cpuStatusController = StreamController();
   StreamController rtcController = StreamController();
   StreamController runModeController = StreamController();
+  StreamController timersController = StreamController();
   List<int>? runModeData = [0, 0];
   List<int>? rtcData = [0, 0, 0, 0, 0, 1, 0];
   List<int>? cpuStatusData = [0, 0];
@@ -162,12 +164,38 @@ class _HomeScreenState extends State<HomeScreen>
     timer1EndMinutes = timer1EndTotal % 60;
     rtcTotalMinutes = rtcData![1] + rtcData![2] * 60;
     timer1StartTotalMinutes = timer1Start24Hour * 60 + timer1StartMinutes;
-    if (rtcTotalMinutes > timer1StartTotalMinutes) {
-      timer1ElapsedMinutes = rtcTotalMinutes - timer1StartTotalMinutes;
+
+    int totalTimeMinutes;
+    int elapsedTimeMinutes;
+    if (timer1EndTotal > timer1StartTotalMinutes) {
+      totalTimeMinutes = timer1EndTotal - timer1StartTotalMinutes;
+      if (rtcTotalMinutes < timer1StartTotalMinutes) {
+        elapsedTimeMinutes = 0;
+      } else if (rtcTotalMinutes < timer1EndTotal) {
+        elapsedTimeMinutes = rtcTotalMinutes - timer1StartTotalMinutes;
+      } else {
+        elapsedTimeMinutes = totalTimeMinutes;
+      }
+    } else {
+      totalTimeMinutes = 1440 - (timer1StartTotalMinutes - timer1EndTotal);
+      if (rtcTotalMinutes > timer1StartTotalMinutes) {
+        elapsedTimeMinutes = rtcTotalMinutes - timer1StartTotalMinutes;
+      } else if (rtcTotalMinutes < timer1EndTotal) {
+        elapsedTimeMinutes =
+            totalTimeMinutes - (timer1EndTotal - timer1StartTotalMinutes);
+      } else {
+        elapsedTimeMinutes = 0;
+      }
     }
-    if (timer1ElapsedMinutes < timer1DurationTotal) {
-      timer1Progress = timer1ElapsedMinutes / timer1DurationTotal;
-    }
+    timer1Progress = elapsedTimeMinutes / totalTimeMinutes;
+//
+
+    // if (rtcTotalMinutes > timer1StartTotalMinutes) {
+    //   timer1ElapsedMinutes = rtcTotalMinutes - timer1StartTotalMinutes;
+    // }
+    // if (timer1ElapsedMinutes < timer1DurationTotal) {
+    //   timer1Progress = timer1ElapsedMinutes / timer1DurationTotal;
+    // }
   }
 
   void _initStream() {
@@ -189,6 +217,13 @@ class _HomeScreenState extends State<HomeScreen>
       runModeController.addStream(widget.flutterReactiveBle
           .subscribeToCharacteristic(QualifiedCharacteristic(
               characteristicId: runModeCharacteristicUuid,
+              serviceId: cpuModuleServiceUuid,
+              deviceId: widget.device.id)));
+    }
+    if (timersController.hasListener == false) {
+      timersController.addStream(widget.flutterReactiveBle
+          .subscribeToCharacteristic(QualifiedCharacteristic(
+              characteristicId: timersCharacteristicUuid,
               serviceId: cpuModuleServiceUuid,
               deviceId: widget.device.id)));
     }
@@ -226,160 +261,310 @@ class _HomeScreenState extends State<HomeScreen>
               mainAxisAlignment: MainAxisAlignment.start,
               children: <Widget>[
                 StreamBuilder<dynamic>(
-                  stream: rtcController.stream,
-                  builder: (rtcContext, rtcSnapshot) {
-                    if (rtcSnapshot.hasData) {
-                      rtcData = rtcSnapshot.data;
+                  stream: timersController.stream,
+                  builder: (timersContext, timersSnapshot) {
+                    if (timersSnapshot.hasData) {
+                      timersData = timersSnapshot.data;
                     }
-                    String rtcMonth = monthString[rtcData![5] - 1];
-                    int rtcDay = rtcData![4];
-                    String rtcDayOfWeek = dayOfWeekString[rtcData![3]];
-                    int rtc24Hour = rtcData![2];
-                    int rtc12Hour = rtc24Hour;
-                    String rtcAmPm = 'am';
-                    int rtcMinutes = rtcData![1];
-                    if (rtc24Hour == 0) {
-                      rtc12Hour = 12;
-                      rtcAmPm = 'am';
-                    } else if (rtc24Hour < 13) {
-                      rtc12Hour = rtc24Hour;
-                      rtcAmPm = 'am';
-                      if (rtc12Hour == 12) {
-                        rtcAmPm = 'pm';
+                    timer1Start24Hour = timersData![0];
+                    if (timer1Start24Hour == 0) {
+                      timer1Start12Hour = 12;
+                      timer1StartAmPm = 'am';
+                    } else if (timer1Start24Hour < 13) {
+                      timer1Start12Hour = timer1Start24Hour;
+                      timer1StartAmPm = 'am';
+                      if (timer1Start12Hour == 12) {
+                        timer1StartAmPm = 'pm';
                       }
                     } else {
-                      rtc12Hour = rtc24Hour - 12;
-                      rtcAmPm = 'pm';
+                      timer1Start12Hour = timer1Start24Hour - 12;
+                      timer1StartAmPm = 'pm';
                     }
-                    rtcTotalMinutes = rtcMinutes + rtc24Hour * 60;
-                    if (rtcTotalMinutes > timer1StartTotalMinutes) {
-                      timer1ElapsedMinutes =
-                          rtcTotalMinutes - timer1StartTotalMinutes;
+                    timer1StartMinutes = timersData![1];
+                    timer1DurationTotal =
+                        (timersData![2] << 8) | (timersData![3]);
+                    timer1DurationHour = (timer1DurationTotal / 60).floor();
+                    timer1DurationMinutes = timer1DurationTotal % 60;
+                    runTime = timer1DurationTotal.toDouble();
+                    timer1EndTotal = timer1Start24Hour * 60 +
+                        timer1StartMinutes +
+                        timer1DurationTotal;
+                    if (timer1EndTotal > 1440) {
+                      timer1EndTotal -= 1440;
                     }
-                    if (timer1ElapsedMinutes < timer1DurationTotal) {
-                      timer1Progress =
-                          timer1ElapsedMinutes / timer1DurationTotal;
+                    timer1End24Hour = (timer1EndTotal / 60).floor();
+                    if (timer1End24Hour == 0) {
+                      timer1End12Hour = 12;
+                      timer1EndAmPm = 'am';
+                    } else if (timer1End24Hour < 13) {
+                      timer1End12Hour = timer1End24Hour;
+                      timer1EndAmPm = 'am';
+                      if (timer1End12Hour == 12) {
+                        timer1EndAmPm = 'pm';
+                      }
                     } else {
-                      timer1Progress = 1.0;
+                      timer1End12Hour = timer1End24Hour - 12;
+                      timer1EndAmPm = 'pm';
                     }
-                    return Padding(
-                      padding: const EdgeInsets.only(top: 20.0),
-                      child: Column(
-                        children: [
-                          Stack(
+                    timer1EndMinutes = timer1EndTotal % 60;
+                    rtcTotalMinutes = rtcData![1] + rtcData![2] * 60;
+                    timer1StartTotalMinutes =
+                        timer1Start24Hour * 60 + timer1StartMinutes;
+                    int totalTimeMinutes;
+                    int elapsedTimeMinutes;
+                    if (timer1EndTotal > timer1StartTotalMinutes) {
+                      totalTimeMinutes =
+                          timer1EndTotal - timer1StartTotalMinutes;
+                      if (rtcTotalMinutes < timer1StartTotalMinutes) {
+                        elapsedTimeMinutes = 0;
+                      } else if (rtcTotalMinutes < timer1EndTotal) {
+                        elapsedTimeMinutes =
+                            rtcTotalMinutes - timer1StartTotalMinutes;
+                      } else {
+                        elapsedTimeMinutes = totalTimeMinutes;
+                      }
+                    } else {
+                      totalTimeMinutes =
+                          1440 - (timer1StartTotalMinutes - timer1EndTotal);
+                      if (rtcTotalMinutes > timer1StartTotalMinutes) {
+                        elapsedTimeMinutes =
+                            rtcTotalMinutes - timer1StartTotalMinutes;
+                      } else if (rtcTotalMinutes < timer1EndTotal) {
+                        elapsedTimeMinutes = totalTimeMinutes -
+                            (timer1EndTotal - timer1StartTotalMinutes);
+                      } else {
+                        elapsedTimeMinutes = 0;
+                      }
+                    }
+                    timer1Progress = elapsedTimeMinutes / totalTimeMinutes;
+
+                    return StreamBuilder<dynamic>(
+                      stream: rtcController.stream,
+                      builder: (rtcContext, rtcSnapshot) {
+                        if (rtcSnapshot.hasData) {
+                          rtcData = rtcSnapshot.data;
+                        }
+                        String rtcMonth = monthString[rtcData![5] - 1];
+                        int rtcDay = rtcData![4];
+                        String rtcDayOfWeek = dayOfWeekString[rtcData![3]];
+                        int rtc24Hour = rtcData![2];
+                        int rtc12Hour = rtc24Hour;
+                        String rtcAmPm = 'am';
+                        int rtcMinutes = rtcData![1];
+                        if (rtc24Hour == 0) {
+                          rtc12Hour = 12;
+                          rtcAmPm = 'am';
+                        } else if (rtc24Hour < 13) {
+                          rtc12Hour = rtc24Hour;
+                          rtcAmPm = 'am';
+                          if (rtc12Hour == 12) {
+                            rtcAmPm = 'pm';
+                          }
+                        } else {
+                          rtc12Hour = rtc24Hour - 12;
+                          rtcAmPm = 'pm';
+                        }
+                        rtcTotalMinutes = rtcMinutes + rtc24Hour * 60;
+                        timer1Start24Hour = timersData![0];
+                        if (timer1Start24Hour == 0) {
+                          timer1Start12Hour = 12;
+                          timer1StartAmPm = 'am';
+                        } else if (timer1Start24Hour < 13) {
+                          timer1Start12Hour = timer1Start24Hour;
+                          timer1StartAmPm = 'am';
+                          if (timer1Start12Hour == 12) {
+                            timer1StartAmPm = 'pm';
+                          }
+                        } else {
+                          timer1Start12Hour = timer1Start24Hour - 12;
+                          timer1StartAmPm = 'pm';
+                        }
+                        timer1StartMinutes = timersData![1];
+                        timer1DurationTotal =
+                            (timersData![2] << 8) | (timersData![3]);
+                        timer1DurationHour = (timer1DurationTotal / 60).floor();
+                        timer1DurationMinutes = timer1DurationTotal % 60;
+                        runTime = timer1DurationTotal.toDouble();
+                        timer1EndTotal = timer1Start24Hour * 60 +
+                            timer1StartMinutes +
+                            timer1DurationTotal;
+                        if (timer1EndTotal > 1440) {
+                          timer1EndTotal -= 1440;
+                        }
+                        timer1End24Hour = (timer1EndTotal / 60).floor();
+                        if (timer1End24Hour == 0) {
+                          timer1End12Hour = 12;
+                          timer1EndAmPm = 'am';
+                        } else if (timer1End24Hour < 13) {
+                          timer1End12Hour = timer1End24Hour;
+                          timer1EndAmPm = 'am';
+                          if (timer1End12Hour == 12) {
+                            timer1EndAmPm = 'pm';
+                          }
+                        } else {
+                          timer1End12Hour = timer1End24Hour - 12;
+                          timer1EndAmPm = 'pm';
+                        }
+                        timer1EndMinutes = timer1EndTotal % 60;
+                        rtcTotalMinutes = rtcData![1] + rtcData![2] * 60;
+                        timer1StartTotalMinutes =
+                            timer1Start24Hour * 60 + timer1StartMinutes;
+                        int totalTimeMinutes;
+                        int elapsedTimeMinutes;
+                        if (timer1EndTotal > timer1StartTotalMinutes) {
+                          totalTimeMinutes =
+                              timer1EndTotal - timer1StartTotalMinutes;
+                          if (rtcTotalMinutes < timer1StartTotalMinutes) {
+                            elapsedTimeMinutes = 0;
+                          } else if (rtcTotalMinutes < timer1EndTotal) {
+                            elapsedTimeMinutes =
+                                rtcTotalMinutes - timer1StartTotalMinutes;
+                          } else {
+                            elapsedTimeMinutes = totalTimeMinutes;
+                          }
+                        } else {
+                          totalTimeMinutes =
+                              1440 - (timer1StartTotalMinutes - timer1EndTotal);
+                          if (rtcTotalMinutes > timer1StartTotalMinutes) {
+                            elapsedTimeMinutes =
+                                rtcTotalMinutes - timer1StartTotalMinutes;
+                          } else if (rtcTotalMinutes < timer1EndTotal) {
+                            elapsedTimeMinutes = totalTimeMinutes -
+                                (timer1EndTotal - timer1StartTotalMinutes);
+                          } else {
+                            elapsedTimeMinutes = 0;
+                          }
+                        }
+                        timer1Progress = elapsedTimeMinutes / totalTimeMinutes;
+
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 20.0),
+                          child: Column(
                             children: [
-                              SizedBox(
-                                  height: 300,
-                                  width: 300,
-                                  child: checkBit(cpuStatusData![0], 6)
-                                      ? const RunningAnimation()
-                                      : const RunningAnimation()),
-                              SizedBox(
-                                height: 300,
-                                width: 300,
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      rtcDayOfWeek,
-                                      style: const TextStyle(
-                                          fontSize: 30.0,
-                                          color: Color.fromRGBO(53, 62, 71, 1)),
+                              Stack(
+                                children: [
+                                  SizedBox(
+                                      height: 300,
+                                      width: 300,
+                                      child: checkBit(cpuStatusData![0], 6)
+                                          ? const RunningAnimation()
+                                          : const RunningAnimation()),
+                                  SizedBox(
+                                    height: 300,
+                                    width: 300,
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          rtcDayOfWeek,
+                                          style: const TextStyle(
+                                              fontSize: 30.0,
+                                              color: Color.fromRGBO(
+                                                  53, 62, 71, 1)),
+                                        ),
+                                        Text(
+                                          '$rtc12Hour:${rtcMinutes.toString().padLeft(2, '0')}$rtcAmPm',
+                                          style: const TextStyle(
+                                              fontSize: 60.0,
+                                              fontWeight: FontWeight.bold,
+                                              color: Color.fromRGBO(
+                                                  53, 62, 71, 1)),
+                                        ),
+                                        Text(
+                                          '$rtcDay $rtcMonth',
+                                          style: const TextStyle(
+                                              fontSize: 30.0,
+                                              color: Color.fromRGBO(
+                                                  53, 62, 71, 1)),
+                                        ),
+                                      ],
                                     ),
-                                    Text(
-                                      '$rtc12Hour:${rtcMinutes.toString().padLeft(2, '0')}$rtcAmPm',
-                                      style: const TextStyle(
-                                          fontSize: 60.0,
-                                          fontWeight: FontWeight.bold,
-                                          color: Color.fromRGBO(53, 62, 71, 1)),
-                                    ),
-                                    Text(
-                                      '$rtcDay $rtcMonth',
-                                      style: const TextStyle(
-                                          fontSize: 30.0,
-                                          color: Color.fromRGBO(53, 62, 71, 1)),
-                                    ),
-                                  ],
+                                  ),
+                                ],
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(top: 15.0),
+                                child: Opacity(
+                                  opacity: (runMode == 1) ? 1.0 : 0.5,
+                                  child: Column(
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.only(
+                                                left: 40.0),
+                                            child: Column(
+                                              children: [
+                                                const Text('Start Time',
+                                                    style: TextStyle(
+                                                        fontSize: 20.0,
+                                                        color: Color.fromRGBO(
+                                                            53, 62, 71, 1))),
+                                                Text(
+                                                    '$timer1Start12Hour:${timer1StartMinutes.toString().padLeft(2, '0')}$timer1StartAmPm',
+                                                    style: const TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        fontSize: 20.0,
+                                                        color: Color.fromRGBO(
+                                                            88, 201, 223, 1))),
+                                              ],
+                                            ),
+                                          ),
+                                          Padding(
+                                            padding: const EdgeInsets.only(
+                                                right: 40.0),
+                                            child: Column(
+                                              children: [
+                                                const Text('Stop Time',
+                                                    style: TextStyle(
+                                                        fontSize: 20.0,
+                                                        color: Color.fromRGBO(
+                                                            53, 62, 71, 1))),
+                                                Text(
+                                                    '$timer1End12Hour:${timer1EndMinutes.toString().padLeft(2, '0')}$timer1EndAmPm',
+                                                    style: const TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        fontSize: 20.0,
+                                                        color: Color.fromRGBO(
+                                                            88, 201, 223, 1))),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      Padding(
+                                        padding:
+                                            const EdgeInsets.only(top: 20.0),
+                                        child: SizedBox(
+                                            width: 250.0,
+                                            height: 35.0,
+                                            child: ClipRRect(
+                                              borderRadius:
+                                                  const BorderRadius.all(
+                                                      Radius.circular(20.0)),
+                                              child: LinearProgressIndicator(
+                                                value: timer1Progress,
+                                                backgroundColor:
+                                                    const Color.fromRGBO(
+                                                        53, 62, 71, 200),
+                                                color: const Color.fromRGBO(
+                                                    88, 201, 223, 1),
+                                              ),
+                                            )),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ],
                           ),
-                          Padding(
-                            padding: const EdgeInsets.only(top: 15.0),
-                            child: Opacity(
-                              opacity: (runMode == 1) ? 1.0 : 0.5,
-                              child: Column(
-                                children: [
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Padding(
-                                        padding:
-                                            const EdgeInsets.only(left: 40.0),
-                                        child: Column(
-                                          children: [
-                                            const Text('Start Time',
-                                                style: TextStyle(
-                                                    fontSize: 20.0,
-                                                    color: Color.fromRGBO(
-                                                        53, 62, 71, 1))),
-                                            Text(
-                                                '$timer1Start12Hour:${timer1StartMinutes.toString().padLeft(2, '0')}$timer1StartAmPm',
-                                                style: const TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 20.0,
-                                                    color: Color.fromRGBO(
-                                                        88, 201, 223, 1))),
-                                          ],
-                                        ),
-                                      ),
-                                      Padding(
-                                        padding:
-                                            const EdgeInsets.only(right: 40.0),
-                                        child: Column(
-                                          children: [
-                                            const Text('Stop Time',
-                                                style: TextStyle(
-                                                    fontSize: 20.0,
-                                                    color: Color.fromRGBO(
-                                                        53, 62, 71, 1))),
-                                            Text(
-                                                '$timer1End12Hour:${timer1EndMinutes.toString().padLeft(2, '0')}$timer1EndAmPm',
-                                                style: const TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 20.0,
-                                                    color: Color.fromRGBO(
-                                                        88, 201, 223, 1))),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 20.0),
-                                    child: SizedBox(
-                                        width: 250.0,
-                                        height: 35.0,
-                                        child: ClipRRect(
-                                          borderRadius: const BorderRadius.all(
-                                              Radius.circular(20.0)),
-                                          child: LinearProgressIndicator(
-                                            value: timer1Progress,
-                                            backgroundColor:
-                                                const Color.fromRGBO(
-                                                    53, 62, 71, 200),
-                                            color: const Color.fromRGBO(
-                                                88, 201, 223, 1),
-                                          ),
-                                        )),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+                        );
+                      },
                     );
                   },
                 ),
