@@ -226,6 +226,7 @@ class _EditDeviceState extends State<EditDevice> {
                                       serviceId: cpuModuleServiceUuid,
                                       deviceId: widget.device.id));
                               setState(() {});
+                              Navigator.pop(context);
                             },
                             child: const Text('Save',
                                 style: TextStyle(

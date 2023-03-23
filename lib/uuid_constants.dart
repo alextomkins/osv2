@@ -24,8 +24,12 @@ final Uuid chStatusCharacteristicUuid =
     Uuid.parse('1deb9dd3-1648-485e-be9b-ad06bc341040');
 final Uuid chValuesCharacteristicUuid =
     Uuid.parse('1deb9dd3-1648-485e-be9b-ad06bc341041');
+final Uuid ozStatusCharacteristicUuid =
+    Uuid.parse('1deb9dd3-1648-485e-be9b-ad06bc341042');
 final Uuid ozValuesCharacteristicUuid =
     Uuid.parse('1deb9dd3-1648-485e-be9b-ad06bc341043');
+final Uuid prStatusCharacteristicUuid =
+    Uuid.parse('1deb9dd3-1648-485e-be9b-ad06bc341044');
 final Uuid prValuesCharacteristicUuid =
     Uuid.parse('1deb9dd3-1648-485e-be9b-ad06bc341045');
 final Uuid cpuDeviceInfoCharacteristicUuid =

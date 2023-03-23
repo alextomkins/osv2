@@ -24,6 +24,27 @@ class HomeScreen extends StatefulWidget {
   final String timer1EndAmPm;
   final double timer1Progress;
 
+  ///
+  final int timer2Start12Hour;
+  final int timer2StartMinutes;
+  final String timer2StartAmPm;
+  final int timer2End12Hour;
+  final int timer2EndMinutes;
+  final String timer2EndAmPm;
+  final double timer2Progress;
+
+  ///
+  ///
+  final int timer3Start12Hour;
+  final int timer3StartMinutes;
+  final String timer3StartAmPm;
+  final int timer3End12Hour;
+  final int timer3EndMinutes;
+  final String timer3EndAmPm;
+  final double timer3Progress;
+
+  ///
+
   const HomeScreen({
     Key? key,
     required this.device,
@@ -44,6 +65,20 @@ class HomeScreen extends StatefulWidget {
     required this.timer1EndMinutes,
     required this.timer1EndAmPm,
     required this.timer1Progress,
+    required this.timer2Start12Hour,
+    required this.timer2StartMinutes,
+    required this.timer2StartAmPm,
+    required this.timer2End12Hour,
+    required this.timer2EndMinutes,
+    required this.timer2EndAmPm,
+    required this.timer2Progress,
+    required this.timer3Start12Hour,
+    required this.timer3StartMinutes,
+    required this.timer3StartAmPm,
+    required this.timer3End12Hour,
+    required this.timer3EndMinutes,
+    required this.timer3EndAmPm,
+    required this.timer3Progress,
   }) : super(key: key);
 
   @override
@@ -81,7 +116,7 @@ class _HomeScreenState extends State<HomeScreen>
                       width: 300,
                       child: checkBit(widget.cpuStatusData[0], 6)
                           ? const RunningAnimation()
-                          : const RunningAnimation()),
+                          : const IdleAnimation()),
                   SizedBox(
                     height: 300,
                     width: 300,
@@ -113,78 +148,220 @@ class _HomeScreenState extends State<HomeScreen>
                 ],
               ),
               Padding(
-                padding: const EdgeInsets.only(top: 15.0),
+                padding: const EdgeInsets.only(top: 20.0),
                 child: Opacity(
                   opacity: (widget.runMode == 1) ? 1.0 : 0.5,
                   child: Column(
                     children: [
+                      const Text('Timer 1',
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 20.0,
+                              color: Color.fromRGBO(53, 62, 71, 1))),
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Padding(
-                            padding: const EdgeInsets.only(left: 40.0),
+                            padding: const EdgeInsets.only(left: 8.0),
                             child: Column(
                               children: [
                                 const Text('Start Time',
                                     style: TextStyle(
-                                        fontSize: 20.0,
+                                        fontSize: 18.0,
                                         color: Color.fromRGBO(53, 62, 71, 1))),
                                 Text(
                                     '${widget.timer1Start12Hour}:${widget.timer1StartMinutes.toString().padLeft(2, '0')}${widget.timer1StartAmPm}',
                                     style: const TextStyle(
                                         fontWeight: FontWeight.bold,
-                                        fontSize: 20.0,
+                                        fontSize: 18.0,
                                         color:
                                             Color.fromRGBO(88, 201, 223, 1))),
                               ],
                             ),
                           ),
                           Padding(
-                            padding: const EdgeInsets.only(right: 40.0),
-                            child: Column(
-                              children: [
-                                const Text('Stop Time',
-                                    style: TextStyle(
-                                        fontSize: 20.0,
-                                        color: Color.fromRGBO(53, 62, 71, 1))),
-                                Text(
-                                    '${widget.timer1End12Hour}:${widget.timer1EndMinutes.toString().padLeft(2, '0')}${widget.timer1EndAmPm}',
-                                    style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 20.0,
-                                        color:
-                                            Color.fromRGBO(88, 201, 223, 1))),
-                              ],
-                            ),
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: SizedBox(
+                                width: 200.0,
+                                height: 35.0,
+                                child: ClipRRect(
+                                  borderRadius: const BorderRadius.all(
+                                      Radius.circular(20.0)),
+                                  child: LinearProgressIndicator(
+                                    value: widget.timer1Progress,
+                                    backgroundColor:
+                                        const Color.fromRGBO(53, 62, 71, 200),
+                                    color:
+                                        const Color.fromRGBO(88, 201, 223, 1),
+                                  ),
+                                )),
+                          ),
+                          Column(
+                            children: [
+                              const Text('Stop Time',
+                                  style: TextStyle(
+                                      fontSize: 18.0,
+                                      color: Color.fromRGBO(53, 62, 71, 1))),
+                              Text(
+                                  '${widget.timer1End12Hour}:${widget.timer1EndMinutes.toString().padLeft(2, '0')}${widget.timer1EndAmPm}',
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18.0,
+                                      color: Color.fromRGBO(88, 201, 223, 1))),
+                            ],
                           ),
                         ],
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(top: 20.0),
-                        child: SizedBox(
-                            width: 250.0,
-                            height: 35.0,
-                            child: ClipRRect(
-                              borderRadius:
-                                  const BorderRadius.all(Radius.circular(20.0)),
-                              child: LinearProgressIndicator(
-                                value: widget.timer1Progress,
-                                backgroundColor:
-                                    const Color.fromRGBO(53, 62, 71, 200),
-                                color: const Color.fromRGBO(88, 201, 223, 1),
-                              ),
-                            )),
                       ),
                     ],
                   ),
                 ),
               ),
+              ////
+              Padding(
+                padding: const EdgeInsets.only(top: 5.0),
+                child: Opacity(
+                  opacity: (widget.runMode == 1) ? 1.0 : 0.5,
+                  child: Column(
+                    children: [
+                      const Text('Timer 2',
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 20.0,
+                              color: Color.fromRGBO(53, 62, 71, 1))),
+                      Row(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(left: 8.0),
+                            child: Column(
+                              children: [
+                                const Text('Start Time',
+                                    style: TextStyle(
+                                        fontSize: 18.0,
+                                        color: Color.fromRGBO(53, 62, 71, 1))),
+                                Text(
+                                    '${widget.timer2Start12Hour}:${widget.timer2StartMinutes.toString().padLeft(2, '0')}${widget.timer2StartAmPm}',
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18.0,
+                                        color:
+                                            Color.fromRGBO(88, 201, 223, 1))),
+                              ],
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: SizedBox(
+                                width: 200.0,
+                                height: 35.0,
+                                child: ClipRRect(
+                                  borderRadius: const BorderRadius.all(
+                                      Radius.circular(20.0)),
+                                  child: LinearProgressIndicator(
+                                    value: widget.timer2Progress,
+                                    backgroundColor:
+                                        const Color.fromRGBO(53, 62, 71, 200),
+                                    color:
+                                        const Color.fromRGBO(88, 201, 223, 1),
+                                  ),
+                                )),
+                          ),
+                          Column(
+                            children: [
+                              const Text('Stop Time',
+                                  style: TextStyle(
+                                      fontSize: 18.0,
+                                      color: Color.fromRGBO(53, 62, 71, 1))),
+                              Text(
+                                  '${widget.timer2End12Hour}:${widget.timer2EndMinutes.toString().padLeft(2, '0')}${widget.timer2EndAmPm}',
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18.0,
+                                      color: Color.fromRGBO(88, 201, 223, 1))),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              ///
+              Padding(
+                padding: const EdgeInsets.only(top: 5.0),
+                child: Visibility(
+                  visible: widget.runMode == 2,
+                  child: Column(
+                    children: [
+                      const Text('Timer 3',
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 20.0,
+                              color: Color.fromRGBO(53, 62, 71, 1))),
+                      Row(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(left: 8.0),
+                            child: Column(
+                              children: [
+                                const Text('Start Time',
+                                    style: TextStyle(
+                                        fontSize: 18.0,
+                                        color: Color.fromRGBO(53, 62, 71, 1))),
+                                Text(
+                                    '${widget.timer3Start12Hour}:${widget.timer3StartMinutes.toString().padLeft(2, '0')}${widget.timer3StartAmPm}',
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18.0,
+                                        color:
+                                            Color.fromRGBO(88, 201, 223, 1))),
+                              ],
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: SizedBox(
+                                width: 200.0,
+                                height: 35.0,
+                                child: ClipRRect(
+                                  borderRadius: const BorderRadius.all(
+                                      Radius.circular(20.0)),
+                                  child: LinearProgressIndicator(
+                                    value: widget.timer3Progress,
+                                    backgroundColor:
+                                        const Color.fromRGBO(53, 62, 71, 200),
+                                    color:
+                                        const Color.fromRGBO(88, 201, 223, 1),
+                                  ),
+                                )),
+                          ),
+                          Column(
+                            children: [
+                              const Text('Stop Time',
+                                  style: TextStyle(
+                                      fontSize: 18.0,
+                                      color: Color.fromRGBO(53, 62, 71, 1))),
+                              Text(
+                                  '${widget.timer3End12Hour}:${widget.timer3EndMinutes.toString().padLeft(2, '0')}${widget.timer3EndAmPm}',
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18.0,
+                                      color: Color.fromRGBO(88, 201, 223, 1))),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              ///
             ],
           ),
         ),
         Expanded(
           child: Padding(
-            padding: const EdgeInsets.only(bottom: 60.0),
+            padding: const EdgeInsets.only(bottom: 30.0),
             child: Align(
               alignment: Alignment.bottomCenter,
               child: ToggleButtons(
@@ -223,7 +400,7 @@ class _HomeScreenState extends State<HomeScreen>
                     style: TextStyle(fontSize: 20.0),
                   ),
                   Text(
-                    "On",
+                    "Super",
                     style: TextStyle(fontSize: 20.0),
                   ),
                 ],

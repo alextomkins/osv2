@@ -154,7 +154,13 @@ class _DevSettingsState extends State<DevSettings> {
                       modulesInfo[1] =
                           '${(uiInfoData[2] << 8) | (uiInfoData[3])}';
                       modulesInfo[2] =
-                          '${(uiInfoData[11] << 56) | (uiInfoData[10] << 48) | (uiInfoData[9] << 40) | (uiInfoData[8] << 32) | (uiInfoData[7] << 24) | (uiInfoData[6] << 16) | (uiInfoData[5] << 8) | (uiInfoData[4])}';
+                          '${uiInfoData[4].toRadixString(16).padLeft(2, '0')}:'
+                          '${uiInfoData[5].toRadixString(16).padLeft(2, '0')}:'
+                          '${uiInfoData[6].toRadixString(16).padLeft(2, '0')}:'
+                          '${uiInfoData[7].toRadixString(16).padLeft(2, '0')}:'
+                          '${uiInfoData[8].toRadixString(16).padLeft(2, '0')}:'
+                          '${uiInfoData[9].toRadixString(16).padLeft(2, '0')}';
+                      modulesInfo[2] = modulesInfo[2].toUpperCase();
                     }
                     if (checkBit(cpuStatusData![0], 2)) {
                       final chInfoData = await widget.flutterReactiveBle
@@ -167,7 +173,7 @@ class _DevSettingsState extends State<DevSettings> {
                       modulesInfo[4] =
                           '${(chInfoData[2] << 8) | (chInfoData[3])}';
                       modulesInfo[5] =
-                          '${(chInfoData[15] << 88) | (chInfoData[14] << 80) | (chInfoData[13] << 72) | (chInfoData[12] << 64) | (chInfoData[11] << 56) | (chInfoData[10] << 48) | (chInfoData[9] << 40) | (chInfoData[8] << 32) | (chInfoData[7] << 24) | (chInfoData[6] << 16) | (chInfoData[5] << 8) | (chInfoData[4])}';
+                          '${chInfoData[4]}${chInfoData[5]}-${chInfoData[6]}${chInfoData[7]}-${chInfoData[8]}${chInfoData[9]}-${chInfoData[10]}${chInfoData[11]}-${chInfoData[12]}${chInfoData[13]}-${chInfoData[14]}${chInfoData[15]}';
                     }
                     if (checkBit(cpuStatusData![0], 3)) {
                       final ozInfoData = await widget.flutterReactiveBle
@@ -180,7 +186,7 @@ class _DevSettingsState extends State<DevSettings> {
                       modulesInfo[7] =
                           '${(ozInfoData[2] << 8) | (ozInfoData[3])}';
                       modulesInfo[8] =
-                          '${(ozInfoData[15] << 88) | (ozInfoData[14] << 80) | (ozInfoData[13] << 72) | (ozInfoData[12] << 64) | (ozInfoData[11] << 56) | (ozInfoData[10] << 48) | (ozInfoData[9] << 40) | (ozInfoData[8] << 32) | (ozInfoData[7] << 24) | (ozInfoData[6] << 16) | (ozInfoData[5] << 8) | (ozInfoData[4])}';
+                          '${ozInfoData[4]}${ozInfoData[5]}-${ozInfoData[6]}${ozInfoData[7]}-${ozInfoData[8]}${ozInfoData[9]}-${ozInfoData[10]}${ozInfoData[11]}-${ozInfoData[12]}${ozInfoData[13]}-${ozInfoData[14]}${ozInfoData[15]}';
                     }
                     if (checkBit(cpuStatusData![1], 1)) {
                       final prInfoData = await widget.flutterReactiveBle
@@ -193,7 +199,7 @@ class _DevSettingsState extends State<DevSettings> {
                       modulesInfo[10] =
                           '${(prInfoData[2] << 8) | (prInfoData[3])}';
                       modulesInfo[11] =
-                          '${(prInfoData[15] << 88) | (prInfoData[14] << 80) | (prInfoData[13] << 72) | (prInfoData[12] << 64) | (prInfoData[11] << 56) | (prInfoData[10] << 48) | (prInfoData[9] << 40) | (prInfoData[8] << 32) | (prInfoData[7] << 24) | (prInfoData[6] << 16) | (prInfoData[5] << 8) | (prInfoData[4])}';
+                          '${prInfoData[4]}${prInfoData[5]}-${prInfoData[6]}${prInfoData[7]}-${prInfoData[8]}${prInfoData[9]}-${prInfoData[10]}${prInfoData[11]}-${prInfoData[12]}${prInfoData[13]}-${prInfoData[14]}${prInfoData[15]}';
                     }
                     hardwareRevisionData = await widget.flutterReactiveBle
                         .readCharacteristic(QualifiedCharacteristic(

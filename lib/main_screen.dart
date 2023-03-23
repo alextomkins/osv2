@@ -34,6 +34,8 @@ final List<String> dayOfWeekString = [
   'Saturday',
 ];
 
+bool checkBit(int value, int bit) => (value & (1 << bit)) != 0;
+
 class MainScreen extends StatefulWidget {
   final DiscoveredDevice device;
   final FlutterReactiveBle flutterReactiveBle;
@@ -61,15 +63,20 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   StreamController cpuStatusController = StreamController();
   StreamController rtcController = StreamController();
-  StreamController runModeController = StreamController();
+  StreamController runModeController = StreamController.broadcast();
   StreamController timersController = StreamController();
   List<int> runModeData = [0, 0];
   List<int> rtcData = [0, 0, 0, 0, 0, 1, 0];
   List<int> cpuStatusData = [0, 0];
   List<int> timersData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
   int runMode = 0;
-  double timer1Progress = 0.0;
+  int chRunMode = 0;
+  int ozRunMode = 0;
+  int prRunMode = 0;
   Timer? timer;
+
+  ///
+  double timer1Progress = 0.0;
   int timer1StartHour = 0;
   int timer1Start24Hour = 0;
   int timer1Start12Hour = 0;
@@ -78,7 +85,7 @@ class _MainScreenState extends State<MainScreen> {
   int timer1DurationTotal = 0;
   int timer1DurationHour = 0;
   int timer1DurationMinutes = 0;
-  double runTime = 0.0;
+  double timer1RunTime = 0.0;
   int timer1EndTotal = 0;
   int timer1End24Hour = 0;
   int timer1End12Hour = 0;
@@ -87,12 +94,67 @@ class _MainScreenState extends State<MainScreen> {
   int timer1ElapsedMinutes = 0;
   int rtcTotalMinutes = 0;
   int timer1StartTotalMinutes = 0;
+
+  ///
+  double timer2Progress = 0.0;
+  int timer2StartHour = 0;
+  int timer2Start24Hour = 0;
+  int timer2Start12Hour = 0;
+  String timer2StartAmPm = '';
+  int timer2StartMinutes = 0;
+  int timer2DurationTotal = 0;
+  int timer2DurationHour = 0;
+  int timer2DurationMinutes = 0;
+  double timer2RunTime = 0.0;
+  int timer2EndTotal = 0;
+  int timer2End24Hour = 0;
+  int timer2End12Hour = 0;
+  String timer2EndAmPm = '';
+  int timer2EndMinutes = 0;
+  int timer2ElapsedMinutes = 0;
+  int timer2StartTotalMinutes = 0;
+
+  ///
+  double timer3Progress = 0.0;
+  int timer3StartHour = 0;
+  int timer3Start24Hour = 0;
+  int timer3Start12Hour = 0;
+  String timer3StartAmPm = '';
+  int timer3StartMinutes = 0;
+  int timer3DurationTotal = 0;
+  int timer3DurationHour = 0;
+  int timer3DurationMinutes = 0;
+  double timer3RunTime = 0.0;
+  int timer3EndTotal = 0;
+  int timer3End24Hour = 0;
+  int timer3End12Hour = 0;
+  String timer3EndAmPm = '';
+  int timer3EndMinutes = 0;
+  int timer3ElapsedMinutes = 0;
+  int timer3StartTotalMinutes = 0;
+
+  ///
   List<int> chStatusData = [];
-  int averageCurrent = 0;
-  int maxCurrent = 0;
-  int setPoint = 0;
-  int period = 0;
-  double temperature = 0;
+  int chAverageCurrent = 0;
+  int chMaxCurrent = 0;
+  int chSetPoint = 0;
+  int chPeriod = 0;
+  double chTemperature = 0;
+
+  ///
+  List<int> ozStatusData = [];
+  int ozAverageCurrent = 0;
+  int ozSetPoint = 0;
+  double ozTemperature = 0;
+
+  ///
+  List<int> prStatusData = [];
+  int prWaterFlow = 0;
+  double prTemperature = 0;
+  int prPH = 0;
+  int prOrp = 0;
+
+  ///
   String rtcMonth = '';
   int rtcDay = 0;
   String rtcDayOfWeek = '';
@@ -144,7 +206,7 @@ class _MainScreenState extends State<MainScreen> {
     timer1DurationTotal = (timersData[2] << 8) | (timersData[3]);
     timer1DurationHour = (timer1DurationTotal / 60).floor();
     timer1DurationMinutes = timer1DurationTotal % 60;
-    runTime = timer1DurationTotal.toDouble();
+    timer1RunTime = timer1DurationTotal.toDouble();
     timer1EndTotal =
         timer1Start24Hour * 60 + timer1StartMinutes + timer1DurationTotal;
     if (timer1EndTotal > 1440) {
@@ -190,6 +252,136 @@ class _MainScreenState extends State<MainScreen> {
       }
     }
     timer1Progress = elapsedTimeMinutes / totalTimeMinutes;
+
+    ///
+    timer2Start24Hour = timersData[6];
+    if (timer2Start24Hour == 0) {
+      timer2Start12Hour = 12;
+      timer2StartAmPm = 'am';
+    } else if (timer2Start24Hour < 13) {
+      timer2Start12Hour = timer2Start24Hour;
+      timer2StartAmPm = 'am';
+      if (timer2Start12Hour == 12) {
+        timer2StartAmPm = 'pm';
+      }
+    } else {
+      timer2Start12Hour = timer2Start24Hour - 12;
+      timer2StartAmPm = 'pm';
+    }
+    timer2StartMinutes = timersData[7];
+    timer2DurationTotal = (timersData[8] << 8) | (timersData[9]);
+    timer2DurationHour = (timer2DurationTotal / 60).floor();
+    timer2DurationMinutes = timer2DurationTotal % 60;
+    timer2RunTime = timer2DurationTotal.toDouble();
+    timer2EndTotal =
+        timer2Start24Hour * 60 + timer2StartMinutes + timer2DurationTotal;
+    if (timer2EndTotal > 1440) {
+      timer2EndTotal -= 1440;
+    }
+    timer2End24Hour = (timer2EndTotal / 60).floor();
+    if (timer2End24Hour == 0) {
+      timer2End12Hour = 12;
+      timer2EndAmPm = 'am';
+    } else if (timer2End24Hour < 13) {
+      timer2End12Hour = timer2End24Hour;
+      timer2EndAmPm = 'am';
+      if (timer2End12Hour == 12) {
+        timer2EndAmPm = 'pm';
+      }
+    } else {
+      timer2End12Hour = timer2End24Hour - 12;
+      timer2EndAmPm = 'pm';
+    }
+    timer2EndMinutes = timer2EndTotal % 60;
+    rtcTotalMinutes = rtcData[1] + rtcData[2] * 60;
+    timer2StartTotalMinutes = timer2Start24Hour * 60 + timer2StartMinutes;
+    if (timer2EndTotal > timer2StartTotalMinutes) {
+      totalTimeMinutes = timer2EndTotal - timer2StartTotalMinutes;
+      if (rtcTotalMinutes < timer2StartTotalMinutes) {
+        elapsedTimeMinutes = 0;
+      } else if (rtcTotalMinutes < timer2EndTotal) {
+        elapsedTimeMinutes = rtcTotalMinutes - timer2StartTotalMinutes;
+      } else {
+        elapsedTimeMinutes = totalTimeMinutes;
+      }
+    } else {
+      totalTimeMinutes = 1440 - (timer2StartTotalMinutes - timer2EndTotal);
+      if (rtcTotalMinutes > timer2StartTotalMinutes) {
+        elapsedTimeMinutes = rtcTotalMinutes - timer2StartTotalMinutes;
+      } else if (rtcTotalMinutes < timer2EndTotal) {
+        elapsedTimeMinutes =
+            totalTimeMinutes - (timer2EndTotal - timer2StartTotalMinutes);
+      } else {
+        elapsedTimeMinutes = 0;
+      }
+    }
+    timer2Progress = elapsedTimeMinutes / totalTimeMinutes;
+
+    ///
+    timer3Start24Hour = timersData[12];
+    if (timer3Start24Hour == 0) {
+      timer3Start12Hour = 12;
+      timer3StartAmPm = 'am';
+    } else if (timer3Start24Hour < 13) {
+      timer3Start12Hour = timer3Start24Hour;
+      timer3StartAmPm = 'am';
+      if (timer3Start12Hour == 12) {
+        timer3StartAmPm = 'pm';
+      }
+    } else {
+      timer3Start12Hour = timer3Start24Hour - 12;
+      timer3StartAmPm = 'pm';
+    }
+    timer3StartMinutes = timersData[13];
+    timer3DurationTotal = (timersData[14] << 8) | (timersData[15]);
+    timer3DurationHour = (timer3DurationTotal / 60).floor();
+    timer3DurationMinutes = timer3DurationTotal % 60;
+    timer3RunTime = timer3DurationTotal.toDouble();
+    timer3EndTotal =
+        timer3Start24Hour * 60 + timer3StartMinutes + timer3DurationTotal;
+    if (timer3EndTotal > 1440) {
+      timer3EndTotal -= 1440;
+    }
+    timer3End24Hour = (timer3EndTotal / 60).floor();
+    if (timer3End24Hour == 0) {
+      timer3End12Hour = 12;
+      timer3EndAmPm = 'am';
+    } else if (timer3End24Hour < 13) {
+      timer3End12Hour = timer3End24Hour;
+      timer3EndAmPm = 'am';
+      if (timer3End12Hour == 12) {
+        timer3EndAmPm = 'pm';
+      }
+    } else {
+      timer3End12Hour = timer3End24Hour - 12;
+      timer3EndAmPm = 'pm';
+    }
+    timer3EndMinutes = timer3EndTotal % 60;
+    rtcTotalMinutes = rtcData[1] + rtcData[2] * 60;
+    timer3StartTotalMinutes = timer3Start24Hour * 60 + timer3StartMinutes;
+    if (timer3EndTotal > timer3StartTotalMinutes) {
+      totalTimeMinutes = timer3EndTotal - timer3StartTotalMinutes;
+      if (rtcTotalMinutes < timer3StartTotalMinutes) {
+        elapsedTimeMinutes = 0;
+      } else if (rtcTotalMinutes < timer3EndTotal) {
+        elapsedTimeMinutes = rtcTotalMinutes - timer3StartTotalMinutes;
+      } else {
+        elapsedTimeMinutes = totalTimeMinutes;
+      }
+    } else {
+      totalTimeMinutes = 1440 - (timer3StartTotalMinutes - timer3EndTotal);
+      if (rtcTotalMinutes > timer3StartTotalMinutes) {
+        elapsedTimeMinutes = rtcTotalMinutes - timer3StartTotalMinutes;
+      } else if (rtcTotalMinutes < timer3EndTotal) {
+        elapsedTimeMinutes =
+            totalTimeMinutes - (timer3EndTotal - timer3StartTotalMinutes);
+      } else {
+        elapsedTimeMinutes = 0;
+      }
+    }
+    timer3Progress = elapsedTimeMinutes / totalTimeMinutes;
+
+    ///
   }
 
   void _initStream() {
@@ -241,12 +433,45 @@ class _MainScreenState extends State<MainScreen> {
               characteristicId: chStatusCharacteristicUuid,
               serviceId: modbusDevicesServiceUuid,
               deviceId: widget.device.id));
-      averageCurrent = (chValuesData[0] << 8) | (chValuesData[1]);
-      maxCurrent = (chValuesData[2] << 8) | (chValuesData[3]);
-      setPoint = chValuesData[4];
-      period = (chValuesData[5] << 8) | (chValuesData[6]);
-      temperature =
+      chAverageCurrent = (chValuesData[0] << 8) | (chValuesData[1]);
+      chMaxCurrent = (chValuesData[2] << 8) | (chValuesData[3]);
+      chSetPoint = chValuesData[4];
+      chPeriod = (chValuesData[5] << 8) | (chValuesData[6]);
+      chTemperature =
           ((chValuesData[7] << 8) | (chValuesData[8])).toDouble() / 10;
+
+      /// TODO: Use oz UUIDs when implimented
+      List<int> ozValuesData = await widget.flutterReactiveBle
+          .readCharacteristic(QualifiedCharacteristic(
+              characteristicId: chValuesCharacteristicUuid,
+              serviceId: modbusDevicesServiceUuid,
+              deviceId: widget.device.id));
+      ozStatusData = await widget.flutterReactiveBle.readCharacteristic(
+          QualifiedCharacteristic(
+              characteristicId: chStatusCharacteristicUuid,
+              serviceId: modbusDevicesServiceUuid,
+              deviceId: widget.device.id));
+      ozAverageCurrent = (ozValuesData[1] << 8) | (ozValuesData[2]);
+      ozSetPoint = ozValuesData[0];
+      ozTemperature =
+          ((ozValuesData[3] << 8) | (ozValuesData[4])).toDouble() / 10;
+
+      /// TODO: Use pr UUIDs when implimented
+      List<int> prValuesData = await widget.flutterReactiveBle
+          .readCharacteristic(QualifiedCharacteristic(
+              characteristicId: chValuesCharacteristicUuid,
+              serviceId: modbusDevicesServiceUuid,
+              deviceId: widget.device.id));
+      prStatusData = await widget.flutterReactiveBle.readCharacteristic(
+          QualifiedCharacteristic(
+              characteristicId: chStatusCharacteristicUuid,
+              serviceId: modbusDevicesServiceUuid,
+              deviceId: widget.device.id));
+      prWaterFlow = (prValuesData[0] << 8) | (prValuesData[1]);
+      prTemperature =
+          ((prValuesData[2] << 8) | (prValuesData[3])).toDouble() / 10;
+      prPH = (prValuesData[4] << 8) | (prValuesData[5]);
+      prOrp = (prValuesData[6] << 8) | (prValuesData[7]);
       setState(() {});
     });
   }
@@ -257,54 +482,80 @@ class _MainScreenState extends State<MainScreen> {
       initialIndex: 0,
       length: 4,
       child: Scaffold(
-        appBar: AppBar(
-          centerTitle: true,
-          title: const Text(
-            "Ozone Swim v2",
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-          actions: <Widget>[
-            IconButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => Settings(
-                        device: widget.device,
-                        flutterReactiveBle: widget.flutterReactiveBle,
-                        connection: widget.connection,
-                        cpuStatusData: cpuStatusData,
-                        rtcData: rtcData,
-                        runModeData: runModeData,
-                        timersData: timersData,
+        appBar: PreferredSize(
+          preferredSize: const Size.fromHeight(90.0),
+          child: StreamBuilder(
+              stream: cpuStatusController.stream,
+              builder: (context, cpuStatusSnapshot) {
+                if (cpuStatusSnapshot.hasData) {
+                  cpuStatusData = cpuStatusSnapshot.data;
+                }
+                return AppBar(
+                  centerTitle: true,
+                  title: const Text(
+                    "Ozone Swim v2",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  actions: <Widget>[
+                    IconButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => Settings(
+                                device: widget.device,
+                                flutterReactiveBle: widget.flutterReactiveBle,
+                                connection: widget.connection,
+                                cpuStatusData: cpuStatusData,
+                                rtcData: rtcData,
+                                runModeData: runModeData,
+                                timersData: timersData,
+                              ),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.settings)),
+                  ],
+                  bottom: TabBar(
+                    tabs: <Widget>[
+                      const Tab(
+                        icon: Icon(Icons.home),
                       ),
-                    ),
-                  );
-                },
-                icon: const Icon(Icons.settings)),
-          ],
-          bottom: const TabBar(
-            tabs: <Widget>[
-              Tab(
-                icon: Icon(Icons.home),
-              ),
-              Tab(
-                icon: Icon(CustomIcons.iconcl2),
-              ),
-              Tab(
-                icon: Icon(CustomIcons.icono3v2),
-              ),
-              Tab(
-                icon: Icon(Icons.remove_red_eye),
-              ),
-            ],
-          ),
+                      Tab(
+                        icon: checkBit(cpuStatusData[0], 2)
+                            ? const Icon(CustomIcons.iconcl2)
+                            : const Icon(
+                                CustomIcons.iconcl2,
+                                color: Colors.black26,
+                              ),
+                      ),
+                      Tab(
+                        icon: checkBit(cpuStatusData[0], 3)
+                            ? const Icon(CustomIcons.icono3v2)
+                            : const Icon(
+                                CustomIcons.icono3v2,
+                                color: Colors.black26,
+                              ),
+                      ),
+                      Tab(
+                        icon: checkBit(cpuStatusData[1], 1)
+                            ? const Icon(Icons.remove_red_eye)
+                            : const Icon(
+                                Icons.remove_red_eye,
+                                color: Colors.black26,
+                              ),
+                      ),
+                    ],
+                  ),
+                );
+              }),
         ),
         body: TabBarView(
           children: [
             StreamBuilder(
               stream: runModeController.stream,
               builder: (context, runModeSnapshot) {
+                print(widget.connection);
                 if (runModeSnapshot.hasData) {
                   runModeData = runModeSnapshot.data;
                 }
@@ -361,7 +612,7 @@ class _MainScreenState extends State<MainScreen> {
                             (timersData[2] << 8) | (timersData[3]);
                         timer1DurationHour = (timer1DurationTotal / 60).floor();
                         timer1DurationMinutes = timer1DurationTotal % 60;
-                        runTime = timer1DurationTotal.toDouble();
+                        timer1RunTime = timer1DurationTotal.toDouble();
                         timer1EndTotal = timer1Start24Hour * 60 +
                             timer1StartMinutes +
                             timer1DurationTotal;
@@ -406,9 +657,6 @@ class _MainScreenState extends State<MainScreen> {
                             elapsedTimeMinutes =
                                 rtcTotalMinutes - timer1StartTotalMinutes;
                           } else if (rtcTotalMinutes < timer1EndTotal) {
-                            //print(totalTimeMinutes);
-                            //print(timer1EndTotal);
-                            //print(timer1StartTotalMinutes);
                             elapsedTimeMinutes = totalTimeMinutes -
                                 (timer1EndTotal - rtcTotalMinutes);
                           } else {
@@ -416,6 +664,150 @@ class _MainScreenState extends State<MainScreen> {
                           }
                         }
                         timer1Progress = elapsedTimeMinutes / totalTimeMinutes;
+
+                        ///
+                        timer2Start24Hour = timersData[6];
+                        if (timer2Start24Hour == 0) {
+                          timer2Start12Hour = 12;
+                          timer2StartAmPm = 'am';
+                        } else if (timer2Start24Hour < 13) {
+                          timer2Start12Hour = timer2Start24Hour;
+                          timer2StartAmPm = 'am';
+                          if (timer2Start12Hour == 12) {
+                            timer2StartAmPm = 'pm';
+                          }
+                        } else {
+                          timer2Start12Hour = timer2Start24Hour - 12;
+                          timer2StartAmPm = 'pm';
+                        }
+                        timer2StartMinutes = timersData[7];
+                        timer2DurationTotal =
+                            (timersData[8] << 8) | (timersData[9]);
+                        timer2DurationHour = (timer2DurationTotal / 60).floor();
+                        timer2DurationMinutes = timer2DurationTotal % 60;
+                        timer2RunTime = timer2DurationTotal.toDouble();
+                        timer2EndTotal = timer2Start24Hour * 60 +
+                            timer2StartMinutes +
+                            timer2DurationTotal;
+                        if (timer2EndTotal > 1440) {
+                          timer2EndTotal -= 1440;
+                        }
+                        timer2End24Hour = (timer2EndTotal / 60).floor();
+                        if (timer2End24Hour == 0) {
+                          timer2End12Hour = 12;
+                          timer2EndAmPm = 'am';
+                        } else if (timer2End24Hour < 13) {
+                          timer2End12Hour = timer2End24Hour;
+                          timer2EndAmPm = 'am';
+                          if (timer2End12Hour == 12) {
+                            timer2EndAmPm = 'pm';
+                          }
+                        } else {
+                          timer2End12Hour = timer2End24Hour - 12;
+                          timer2EndAmPm = 'pm';
+                        }
+                        timer2EndMinutes = timer2EndTotal % 60;
+                        rtcTotalMinutes = rtcData[1] + rtcData[2] * 60;
+                        timer2StartTotalMinutes =
+                            timer2Start24Hour * 60 + timer2StartMinutes;
+                        if (timer2EndTotal > timer2StartTotalMinutes) {
+                          totalTimeMinutes =
+                              timer2EndTotal - timer2StartTotalMinutes;
+                          if (rtcTotalMinutes < timer2StartTotalMinutes) {
+                            elapsedTimeMinutes = 0;
+                          } else if (rtcTotalMinutes < timer2EndTotal) {
+                            elapsedTimeMinutes =
+                                rtcTotalMinutes - timer2StartTotalMinutes;
+                          } else {
+                            elapsedTimeMinutes = totalTimeMinutes;
+                          }
+                        } else {
+                          totalTimeMinutes =
+                              1440 - (timer2StartTotalMinutes - timer2EndTotal);
+                          if (rtcTotalMinutes > timer2StartTotalMinutes) {
+                            elapsedTimeMinutes =
+                                rtcTotalMinutes - timer2StartTotalMinutes;
+                          } else if (rtcTotalMinutes < timer2EndTotal) {
+                            elapsedTimeMinutes = totalTimeMinutes -
+                                (timer2EndTotal - rtcTotalMinutes);
+                          } else {
+                            elapsedTimeMinutes = 0;
+                          }
+                        }
+                        timer2Progress = elapsedTimeMinutes / totalTimeMinutes;
+
+                        ///
+                        timer3Start24Hour = timersData[12];
+                        if (timer3Start24Hour == 0) {
+                          timer3Start12Hour = 12;
+                          timer3StartAmPm = 'am';
+                        } else if (timer3Start24Hour < 13) {
+                          timer3Start12Hour = timer3Start24Hour;
+                          timer3StartAmPm = 'am';
+                          if (timer3Start12Hour == 12) {
+                            timer3StartAmPm = 'pm';
+                          }
+                        } else {
+                          timer3Start12Hour = timer3Start24Hour - 12;
+                          timer3StartAmPm = 'pm';
+                        }
+                        timer3StartMinutes = timersData[13];
+                        timer2DurationTotal =
+                            (timersData[14] << 8) | (timersData[15]);
+                        timer3DurationHour = (timer3DurationTotal / 60).floor();
+                        timer3DurationMinutes = timer3DurationTotal % 60;
+                        timer3RunTime = timer3DurationTotal.toDouble();
+                        timer3EndTotal = timer3Start24Hour * 60 +
+                            timer3StartMinutes +
+                            timer3DurationTotal;
+                        if (timer3EndTotal > 1440) {
+                          timer3EndTotal -= 1440;
+                        }
+                        timer3End24Hour = (timer3EndTotal / 60).floor();
+                        if (timer3End24Hour == 0) {
+                          timer3End12Hour = 12;
+                          timer3EndAmPm = 'am';
+                        } else if (timer3End24Hour < 13) {
+                          timer3End12Hour = timer3End24Hour;
+                          timer3EndAmPm = 'am';
+                          if (timer3End12Hour == 12) {
+                            timer3EndAmPm = 'pm';
+                          }
+                        } else {
+                          timer3End12Hour = timer3End24Hour - 12;
+                          timer3EndAmPm = 'pm';
+                        }
+                        timer3EndMinutes = timer3EndTotal % 60;
+                        rtcTotalMinutes = rtcData[1] + rtcData[2] * 60;
+                        timer3StartTotalMinutes =
+                            timer3Start24Hour * 60 + timer3StartMinutes;
+                        if (timer3EndTotal > timer3StartTotalMinutes) {
+                          totalTimeMinutes =
+                              timer3EndTotal - timer3StartTotalMinutes;
+                          if (rtcTotalMinutes < timer3StartTotalMinutes) {
+                            elapsedTimeMinutes = 0;
+                          } else if (rtcTotalMinutes < timer3EndTotal) {
+                            elapsedTimeMinutes =
+                                rtcTotalMinutes - timer3StartTotalMinutes;
+                          } else {
+                            elapsedTimeMinutes = totalTimeMinutes;
+                          }
+                        } else {
+                          totalTimeMinutes =
+                              1440 - (timer3StartTotalMinutes - timer3EndTotal);
+                          if (rtcTotalMinutes > timer3StartTotalMinutes) {
+                            elapsedTimeMinutes =
+                                rtcTotalMinutes - timer3StartTotalMinutes;
+                          } else if (rtcTotalMinutes < timer3EndTotal) {
+                            elapsedTimeMinutes = totalTimeMinutes -
+                                (timer3EndTotal - rtcTotalMinutes);
+                          } else {
+                            elapsedTimeMinutes = 0;
+                          }
+                        }
+                        timer3Progress = elapsedTimeMinutes / totalTimeMinutes;
+
+                        ///
                         return HomeScreen(
                           device: widget.device,
                           flutterReactiveBle: widget.flutterReactiveBle,
@@ -435,6 +827,20 @@ class _MainScreenState extends State<MainScreen> {
                           timer1Start12Hour: timer1Start12Hour,
                           timer1StartAmPm: timer1StartAmPm,
                           timer1StartMinutes: timer1StartMinutes,
+                          timer2End12Hour: timer2End12Hour,
+                          timer2EndAmPm: timer2EndAmPm,
+                          timer2EndMinutes: timer2EndMinutes,
+                          timer2Progress: timer2Progress,
+                          timer2Start12Hour: timer2Start12Hour,
+                          timer2StartAmPm: timer2StartAmPm,
+                          timer2StartMinutes: timer2StartMinutes,
+                          timer3End12Hour: timer3End12Hour,
+                          timer3EndAmPm: timer3EndAmPm,
+                          timer3EndMinutes: timer3EndMinutes,
+                          timer3Progress: timer3Progress,
+                          timer3Start12Hour: timer3Start12Hour,
+                          timer3StartAmPm: timer3StartAmPm,
+                          timer3StartMinutes: timer3StartMinutes,
                         );
                       },
                     );
@@ -442,16 +848,51 @@ class _MainScreenState extends State<MainScreen> {
                 );
               },
             ),
-            Chlorinator(
-              chAverageCurrent: averageCurrent,
-              chMaxCurrent: maxCurrent,
-              chSetPoint: setPoint,
-              chPeriod: period,
-              chTemperature: temperature,
-              chStatusData: chStatusData,
+            StreamBuilder(
+                stream: runModeController.stream,
+                builder: (context, runModeSnapshot) {
+                  if (runModeSnapshot.hasData) {
+                    runModeData = runModeSnapshot.data;
+                  }
+                  chRunMode = (runModeData[0] >> 4) & 0xF;
+                  ozRunMode = runModeData[1] & 0xF;
+                  prRunMode = (runModeData[1] >> 4) & 0xF;
+                  return Chlorinator(
+                    device: widget.device,
+                    flutterReactiveBle: widget.flutterReactiveBle,
+                    connection: widget.connection,
+                    chAverageCurrent: chAverageCurrent,
+                    chMaxCurrent: chMaxCurrent,
+                    chSetPoint: chSetPoint,
+                    chPeriod: chPeriod,
+                    chTemperature: chTemperature,
+                    chStatusData: chStatusData,
+                    chRunMode: chRunMode,
+                    cpuStatusData: cpuStatusData,
+                  );
+                }),
+            Ozone(
+              connection: widget.connection,
+              device: widget.device,
+              flutterReactiveBle: widget.flutterReactiveBle,
+              ozAverageCurrent: ozAverageCurrent,
+              ozRunMode: ozRunMode,
+              ozSetPoint: ozSetPoint,
+              ozStatusData: ozStatusData,
+              ozTemperature: ozTemperature,
+              cpuStatusData: cpuStatusData,
             ),
-            const Ozone(),
-            const Probes(),
+            Probes(
+              device: widget.device,
+              flutterReactiveBle: widget.flutterReactiveBle,
+              prOrp: prOrp,
+              prPH: prPH,
+              prRunMode: prRunMode,
+              prStatusData: prStatusData,
+              prTemperature: prTemperature,
+              prWaterFlow: prWaterFlow,
+              cpuStatusData: cpuStatusData,
+            ),
           ],
         ),
       ),

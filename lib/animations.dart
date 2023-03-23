@@ -79,3 +79,53 @@ class ShapePainter extends CustomPainter {
     return true;
   }
 }
+
+/////////
+
+class IdleAnimation extends StatefulWidget {
+  const IdleAnimation({super.key});
+
+  @override
+  IdleAnimationState createState() => IdleAnimationState();
+}
+
+class IdleAnimationState extends State<IdleAnimation>
+    with TickerProviderStateMixin {
+  late Animation<double> _animation;
+  late AnimationController _animationController;
+
+  @override
+  void initState() {
+    _animationController =
+        AnimationController(vsync: this, duration: const Duration(seconds: 2));
+    _animationController.repeat(reverse: true);
+    _animation = Tween(begin: 2.0, end: 15.0).animate(_animationController)
+      ..addListener(() {
+        setState(() {});
+      });
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 100,
+      height: 100,
+      decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: Theme.of(context).scaffoldBackgroundColor,
+          boxShadow: [
+            BoxShadow(
+                color: const Color.fromRGBO(88, 200, 223, 1),
+                blurRadius: _animation.value,
+                spreadRadius: _animation.value)
+          ]),
+    );
+  }
+}

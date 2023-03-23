@@ -5,7 +5,8 @@ import 'package:osv2/dev_settings.dart';
 import 'package:osv2/main.dart';
 import 'package:osv2/uuid_constants.dart';
 import 'package:settings_ui/settings_ui.dart';
-import 'change_timer.dart';
+import 'change_timer2.dart';
+import 'change_timer1.dart';
 
 final List<String> monthString = [
   "January",
@@ -109,6 +110,9 @@ class _SettingsState extends State<Settings> {
   DateTime timer1Start = DateTime.now();
   DateTime timer1End = DateTime.now();
   Duration timer1Duration = const Duration(minutes: 0);
+  DateTime timer2Start = DateTime.now();
+  DateTime timer2End = DateTime.now();
+  Duration timer2Duration = const Duration(minutes: 0);
   final today = DateTime.now();
 
   Future<void> _initData() async {
@@ -245,7 +249,38 @@ class _SettingsState extends State<Settings> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => ChangeTimer(
+                        builder: (context) => ChangeTimer1(
+                          device: widget.device,
+                          flutterReactiveBle: widget.flutterReactiveBle,
+                          connection: widget.connection,
+                          timersData: timersData,
+                        ),
+                      ),
+                    ).then((_) async {
+                      timersData = await widget.flutterReactiveBle
+                          .readCharacteristic(QualifiedCharacteristic(
+                              characteristicId: timersCharacteristicUuid,
+                              serviceId: cpuModuleServiceUuid,
+                              deviceId: widget.device.id));
+                    });
+                  }),
+
+              ///
+              SettingsTile.navigation(
+                  leading: const Icon(Icons.timer),
+                  title: const Text('Set Timer 2'),
+                  description:
+                      const Text('Change start time and duration of Timer 2'),
+                  onPressed: (context) async {
+                    timersData = await widget.flutterReactiveBle
+                        .readCharacteristic(QualifiedCharacteristic(
+                            characteristicId: timersCharacteristicUuid,
+                            serviceId: cpuModuleServiceUuid,
+                            deviceId: widget.device.id));
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ChangeTimer2(
                           device: widget.device,
                           flutterReactiveBle: widget.flutterReactiveBle,
                           connection: widget.connection,

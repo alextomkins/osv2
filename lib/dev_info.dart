@@ -93,18 +93,18 @@ Firmware Revision: ${String.fromCharCodes(firmwareRevisionData!)}
 Software Revision: $softwareRevision
 Transformer Size: ${transformerSize[cpuDeviceInfoData![0]]}
 Cell Model: ${cellModel[cpuDeviceInfoData![1]]}
-UI Module ID: ${modulesInfo[0]}
-UI Module SW Version: ${modulesInfo[1]}
-UI Module HW Version: ${modulesInfo[2]}
-CH Module ID: ${modulesInfo[3]}
-CH Module SW Version: ${modulesInfo[4]}
-CH Module HW Version: ${modulesInfo[5]}
-OZ Module ID: ${modulesInfo[6]}
-OZ Module SW Version: ${modulesInfo[7]}
-OZ Module HW Version: ${modulesInfo[8]}
-Pr Module ID: ${modulesInfo[9]}
-Pr Module SW Version: ${modulesInfo[10]}
-Pr Module HW Version: ${modulesInfo[11]}''';
+UI Module ID: ${modulesInfo[2]}
+UI Module SW Version: ${modulesInfo[0]}
+UI Module HW Version: ${modulesInfo[1]}
+CH Module ID: ${modulesInfo[5]}
+CH Module SW Version: ${modulesInfo[3]}
+CH Module HW Version: ${modulesInfo[4]}
+OZ Module ID: ${modulesInfo[8]}
+OZ Module SW Version: ${modulesInfo[6]}
+OZ Module HW Version: ${modulesInfo[7]}
+Pr Module ID: ${modulesInfo[11]}
+Pr Module SW Version: ${modulesInfo[9]}
+Pr Module HW Version: ${modulesInfo[10]}''';
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
