@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
-import 'package:osv2/dev_info.dart';
-import 'package:osv2/uuid_constants.dart';
+import 'package:osv2/screens/settings/dev/dev_info_screen.dart';
+import 'package:osv2/util/uuid_constants.dart';
 import 'package:settings_ui/settings_ui.dart';
 
-import 'dev_edit_device.dart';
+import 'dev_edit_device_screen.dart';
 
 class DevSettings extends StatefulWidget {
   final DiscoveredDevice device;

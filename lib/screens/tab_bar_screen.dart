@@ -1,13 +1,13 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
-import 'package:osv2/chlorinator_screen.dart';
-import 'package:osv2/home_screen.dart';
-import 'package:osv2/ozone_screen.dart';
-import 'package:osv2/probes_screen.dart';
-import 'package:osv2/settings.dart';
-import 'package:osv2/uuid_constants.dart';
-import 'my_flutter_app_icons.dart';
+import 'package:osv2/screens/modules/chlorinator_screen.dart';
+import 'package:osv2/screens/home_screen.dart';
+import 'package:osv2/screens/modules/ozone_screen.dart';
+import 'package:osv2/screens/modules/probes_screen.dart';
+import 'package:osv2/screens/settings/settings_screen.dart';
+import 'package:osv2/util/uuid_constants.dart';
+import '../assets/custom_icons.dart';
 
 final List<String> monthString = [
   "January",
@@ -555,7 +555,6 @@ class _MainScreenState extends State<MainScreen> {
             StreamBuilder(
               stream: runModeController.stream,
               builder: (context, runModeSnapshot) {
-                print(widget.connection);
                 if (runModeSnapshot.hasData) {
                   runModeData = runModeSnapshot.data;
                 }

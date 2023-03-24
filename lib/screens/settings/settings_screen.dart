@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
-import 'package:osv2/dev_settings.dart';
-import 'package:osv2/main.dart';
-import 'package:osv2/uuid_constants.dart';
+import 'package:osv2/screens/scan_screen.dart';
+import 'package:osv2/screens/settings/dev/dev_settings_screen.dart';
+import 'package:osv2/util/uuid_constants.dart';
 import 'package:settings_ui/settings_ui.dart';
-import 'change_timer2.dart';
-import 'change_timer1.dart';
+import 'change_timer2_screen.dart';
+import 'change_timer1_screen.dart';
 
 final List<String> monthString = [
   "January",
@@ -311,7 +311,7 @@ class _SettingsState extends State<Settings> {
                     Navigator.pushAndRemoveUntil(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const MyHomePage(
+                        builder: (context) => const ScanScreen(
                           title: 'Ozone Swim v2',
                         ),
                       ),

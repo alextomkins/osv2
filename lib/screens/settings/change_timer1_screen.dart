@@ -1,15 +1,15 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
-import 'package:osv2/uuid_constants.dart';
+import 'package:osv2/util/uuid_constants.dart';
 
-class ChangeTimer2 extends StatefulWidget {
+class ChangeTimer1 extends StatefulWidget {
   final DiscoveredDevice device;
   final FlutterReactiveBle flutterReactiveBle;
   final StreamSubscription<ConnectionStateUpdate>? connection;
   final List<int>? timersData;
 
-  const ChangeTimer2({
+  const ChangeTimer1({
     Key? key,
     required this.device,
     required this.flutterReactiveBle,
@@ -18,7 +18,7 @@ class ChangeTimer2 extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<ChangeTimer2> createState() => _ChangeTimer2State();
+  State<ChangeTimer1> createState() => _ChangeTimer1State();
 }
 
 List<String> dayString = ["Sun", "Mon", "Tues", "Wed", "Thur", "Fri", "Sat"];
@@ -29,69 +29,69 @@ Color probeColor = const Color.fromRGBO(53, 62, 71, 1);
 
 bool checkBit(int value, int bit) => (value & (1 << bit)) != 0;
 
-class _ChangeTimer2State extends State<ChangeTimer2> {
+class _ChangeTimer1State extends State<ChangeTimer1> {
   double runTime = 0;
   TimeOfDay? selectedTime;
   List<int> dayOfWeekList = [0, 0, 0, 0, 0, 0, 0, 0];
-  int timer2Start12Hour = 0;
-  int timer2Start24Hour = 0;
-  String timer2StartAmPm = '';
-  int timer2StartMinutes = 0;
-  int timer2DurationTotal = 0;
-  int timer2DurationHour = 0;
-  int timer2DurationMinutes = 0;
-  int timer2EndTotal = 0;
-  int timer2End24Hour = 0;
-  int timer2End12Hour = 0;
-  int timer2EndMinutes = 0;
-  String timer2EndAmPm = '';
+  int timer1Start12Hour = 0;
+  int timer1Start24Hour = 0;
+  String timer1StartAmPm = '';
+  int timer1StartMinutes = 0;
+  int timer1DurationTotal = 0;
+  int timer1DurationHour = 0;
+  int timer1DurationMinutes = 0;
+  int timer1EndTotal = 0;
+  int timer1End24Hour = 0;
+  int timer1End12Hour = 0;
+  int timer1EndMinutes = 0;
+  String timer1EndAmPm = '';
   bool isOn = false;
   String testingString = 'testing';
   List<int>? timersData;
 
   void _initTimers() {
     timersData = widget.timersData;
-    timer2Start24Hour = timersData![6];
-    if (timer2Start24Hour == 0) {
-      timer2Start12Hour = 12;
-      timer2StartAmPm = 'am';
-    } else if (timer2Start24Hour < 13) {
-      timer2Start12Hour = timer2Start24Hour;
-      timer2StartAmPm = 'am';
-      if (timer2Start12Hour == 12) {
-        timer2StartAmPm = 'pm';
+    timer1Start24Hour = timersData![0];
+    if (timer1Start24Hour == 0) {
+      timer1Start12Hour = 12;
+      timer1StartAmPm = 'am';
+    } else if (timer1Start24Hour < 13) {
+      timer1Start12Hour = timer1Start24Hour;
+      timer1StartAmPm = 'am';
+      if (timer1Start12Hour == 12) {
+        timer1StartAmPm = 'pm';
       }
     } else {
-      timer2Start12Hour = timer2Start24Hour - 12;
-      timer2StartAmPm = 'pm';
+      timer1Start12Hour = timer1Start24Hour - 12;
+      timer1StartAmPm = 'pm';
     }
-    timer2StartMinutes = timersData![1];
-    timer2DurationTotal = (timersData![8] << 8) | (timersData![9]);
-    timer2DurationHour = (timer2DurationTotal / 60).floor();
-    timer2DurationMinutes = timer2DurationTotal % 60;
-    runTime = timer2DurationTotal.toDouble();
-    timer2EndTotal =
-        timer2Start24Hour * 60 + timer2StartMinutes + timer2DurationTotal;
-    if (timer2EndTotal > 1440) {
-      timer2EndTotal -= 1440;
+    timer1StartMinutes = timersData![1];
+    timer1DurationTotal = (timersData![2] << 8) | (timersData![3]);
+    timer1DurationHour = (timer1DurationTotal / 60).floor();
+    timer1DurationMinutes = timer1DurationTotal % 60;
+    runTime = timer1DurationTotal.toDouble();
+    timer1EndTotal =
+        timer1Start24Hour * 60 + timer1StartMinutes + timer1DurationTotal;
+    if (timer1EndTotal > 1440) {
+      timer1EndTotal -= 1440;
     }
-    timer2End24Hour = (timer2EndTotal / 60).floor();
-    if (timer2End24Hour == 0) {
-      timer2End12Hour = 12;
-      timer2EndAmPm = 'am';
-    } else if (timer2End24Hour < 13) {
-      timer2End12Hour = timer2End24Hour;
-      timer2EndAmPm = 'am';
-      if (timer2End12Hour == 12) {
-        timer2EndAmPm = 'pm';
+    timer1End24Hour = (timer1EndTotal / 60).floor();
+    if (timer1End24Hour == 0) {
+      timer1End12Hour = 12;
+      timer1EndAmPm = 'am';
+    } else if (timer1End24Hour < 13) {
+      timer1End12Hour = timer1End24Hour;
+      timer1EndAmPm = 'am';
+      if (timer1End12Hour == 12) {
+        timer1EndAmPm = 'pm';
       }
     } else {
-      timer2End12Hour = timer2End24Hour - 12;
-      timer2EndAmPm = 'pm';
+      timer1End12Hour = timer1End24Hour - 12;
+      timer1EndAmPm = 'pm';
     }
-    timer2EndMinutes = timer2EndTotal % 60;
+    timer1EndMinutes = timer1EndTotal % 60;
     String initDayOfWeekListBin =
-        timersData![10].toRadixString(2).padLeft(8, '0');
+        timersData![4].toRadixString(2).padLeft(8, '0');
     for (var i = 0; i < initDayOfWeekListBin.length; i++) {
       dayOfWeekList[i] = int.parse(initDayOfWeekListBin[i]);
     }
@@ -132,7 +132,7 @@ class _ChangeTimer2State extends State<ChangeTimer2> {
                   ),
                 ),
                 Text(
-                  '$timer2Start12Hour:${timer2StartMinutes.toString().padLeft(2, '0')}$timer2StartAmPm',
+                  '$timer1Start12Hour:${timer1StartMinutes.toString().padLeft(2, '0')}$timer1StartAmPm',
                   style: const TextStyle(
                     fontSize: 27,
                     color: Color.fromRGBO(53, 62, 71, 1),
@@ -147,48 +147,48 @@ class _ChangeTimer2State extends State<ChangeTimer2> {
                       onPressed: () async {
                         selectedTime = await showTimePicker(
                           initialTime: TimeOfDay(
-                              hour: timer2Start24Hour,
-                              minute: timer2StartMinutes),
+                              hour: timer1Start24Hour,
+                              minute: timer1StartMinutes),
                           context: context,
                         );
                         if (selectedTime != null) {
-                          timer2Start24Hour = selectedTime!.hour;
-                          if (timer2Start24Hour == 0) {
-                            timer2Start12Hour = 12;
-                            timer2StartAmPm = 'am';
-                          } else if (timer2Start24Hour < 13) {
-                            timer2Start12Hour = timer2Start24Hour;
-                            timer2StartAmPm = 'am';
-                            if (timer2Start12Hour == 12) {
-                              timer2StartAmPm = 'pm';
+                          timer1Start24Hour = selectedTime!.hour;
+                          if (timer1Start24Hour == 0) {
+                            timer1Start12Hour = 12;
+                            timer1StartAmPm = 'am';
+                          } else if (timer1Start24Hour < 13) {
+                            timer1Start12Hour = timer1Start24Hour;
+                            timer1StartAmPm = 'am';
+                            if (timer1Start12Hour == 12) {
+                              timer1StartAmPm = 'pm';
                             }
                           } else {
-                            timer2Start12Hour = timer2Start24Hour - 12;
-                            timer2StartAmPm = 'pm';
+                            timer1Start12Hour = timer1Start24Hour - 12;
+                            timer1StartAmPm = 'pm';
                           }
-                          timer2StartMinutes = selectedTime!.minute;
+                          timer1StartMinutes = selectedTime!.minute;
 
-                          timer2EndTotal = timer2Start24Hour * 60 +
-                              timer2StartMinutes +
-                              timer2DurationTotal;
-                          if (timer2EndTotal > 1440) {
-                            timer2EndTotal -= 1440;
+                          timer1EndTotal = timer1Start24Hour * 60 +
+                              timer1StartMinutes +
+                              timer1DurationTotal;
+                          if (timer1EndTotal > 1440) {
+                            timer1EndTotal -= 1440;
                           }
-                          timer2End24Hour = (timer2EndTotal / 60).floor();
-                          if (timer2End24Hour == 0) {
-                            timer2End12Hour = 12;
-                            timer2EndAmPm = 'am';
-                          } else if (timer2End24Hour < 13) {
-                            timer2End12Hour = timer2End24Hour;
-                            timer2EndAmPm = 'am';
-                            if (timer2End12Hour == 12) {
-                              timer2EndAmPm = 'pm';
+                          timer1End24Hour = (timer1EndTotal / 60).floor();
+                          if (timer1End24Hour == 0) {
+                            timer1End12Hour = 12;
+                            timer1EndAmPm = 'am';
+                          } else if (timer1End24Hour < 13) {
+                            timer1End12Hour = timer1End24Hour;
+                            timer1EndAmPm = 'am';
+                            if (timer1End12Hour == 12) {
+                              timer1EndAmPm = 'pm';
                             }
                           } else {
-                            timer2End12Hour = timer2End24Hour - 12;
-                            timer2EndAmPm = 'pm';
+                            timer1End12Hour = timer1End24Hour - 12;
+                            timer1EndAmPm = 'pm';
                           }
-                          timer2EndMinutes = timer2EndTotal % 60;
+                          timer1EndMinutes = timer1EndTotal % 60;
                           setState(() {});
                         }
                       },
@@ -210,7 +210,7 @@ class _ChangeTimer2State extends State<ChangeTimer2> {
                     ),
                   ),
                 ),
-                Text('$timer2DurationHour hours $timer2DurationMinutes minutes',
+                Text('$timer1DurationHour hours $timer1DurationMinutes minutes',
                     style: const TextStyle(fontSize: 18.0)),
                 SliderTheme(
                   data: SliderTheme.of(context).copyWith(trackHeight: 16.0),
@@ -218,30 +218,30 @@ class _ChangeTimer2State extends State<ChangeTimer2> {
                     value: runTime,
                     onChanged: (newRunTime) {
                       runTime = newRunTime;
-                      timer2DurationTotal = runTime.floor();
-                      timer2DurationHour = (timer2DurationTotal / 60).floor();
-                      timer2DurationMinutes = timer2DurationTotal % 60;
-                      timer2EndTotal = timer2Start24Hour * 60 +
-                          timer2StartMinutes +
-                          timer2DurationTotal;
-                      if (timer2EndTotal > 1440) {
-                        timer2EndTotal -= 1440;
+                      timer1DurationTotal = runTime.floor();
+                      timer1DurationHour = (timer1DurationTotal / 60).floor();
+                      timer1DurationMinutes = timer1DurationTotal % 60;
+                      timer1EndTotal = timer1Start24Hour * 60 +
+                          timer1StartMinutes +
+                          timer1DurationTotal;
+                      if (timer1EndTotal > 1440) {
+                        timer1EndTotal -= 1440;
                       }
-                      timer2End24Hour = (timer2EndTotal / 60).floor();
-                      if (timer2End24Hour == 0) {
-                        timer2End12Hour = 12;
-                        timer2EndAmPm = 'am';
-                      } else if (timer2End24Hour < 13) {
-                        timer2End12Hour = timer2End24Hour;
-                        timer2EndAmPm = 'am';
-                        if (timer2End12Hour == 12) {
-                          timer2EndAmPm = 'pm';
+                      timer1End24Hour = (timer1EndTotal / 60).floor();
+                      if (timer1End24Hour == 0) {
+                        timer1End12Hour = 12;
+                        timer1EndAmPm = 'am';
+                      } else if (timer1End24Hour < 13) {
+                        timer1End12Hour = timer1End24Hour;
+                        timer1EndAmPm = 'am';
+                        if (timer1End12Hour == 12) {
+                          timer1EndAmPm = 'pm';
                         }
                       } else {
-                        timer2End12Hour = timer2End24Hour - 12;
-                        timer2EndAmPm = 'pm';
+                        timer1End12Hour = timer1End24Hour - 12;
+                        timer1EndAmPm = 'pm';
                       }
-                      timer2EndMinutes = timer2EndTotal % 60;
+                      timer1EndMinutes = timer1EndTotal % 60;
                       setState(() {});
                     },
                     min: 0,
@@ -257,7 +257,7 @@ class _ChangeTimer2State extends State<ChangeTimer2> {
                   ),
                 ),
                 Text(
-                  '$timer2End12Hour:${timer2EndMinutes.toString().padLeft(2, '0')}$timer2EndAmPm',
+                  '$timer1End12Hour:${timer1EndMinutes.toString().padLeft(2, '0')}$timer1EndAmPm',
                   style: const TextStyle(
                     fontSize: 27,
                     color: Color.fromRGBO(53, 62, 71, 1),
@@ -460,11 +460,11 @@ class _ChangeTimer2State extends State<ChangeTimer2> {
                               .writeCharacteristicWithResponse(
                                   commandCharacteristic,
                                   value: [
-                                4,
-                                timer2Start24Hour,
-                                timer2StartMinutes,
-                                timer2DurationTotal >> 8,
-                                timer2DurationTotal & 0xFF,
+                                3,
+                                timer1Start24Hour,
+                                timer1StartMinutes,
+                                timer1DurationTotal >> 8,
+                                timer1DurationTotal & 0xFF,
                                 dayOfWeekDec,
                               ]);
                         }

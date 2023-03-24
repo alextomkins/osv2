@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
-import 'package:osv2/animations.dart';
-import 'package:osv2/uuid_constants.dart';
+import 'package:osv2/util/animations.dart';
+import 'package:osv2/util/uuid_constants.dart';
 
 class HomeScreen extends StatefulWidget {
   final DiscoveredDevice device;
