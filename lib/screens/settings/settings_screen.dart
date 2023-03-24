@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
-import 'package:osv2/screens/scan_screen.dart';
 import 'package:osv2/screens/settings/dev/dev_settings_screen.dart';
 import 'package:osv2/util/uuid_constants.dart';
+import 'package:restart_app/restart_app.dart';
 import 'package:settings_ui/settings_ui.dart';
 import 'change_timer2_screen.dart';
 import 'change_timer1_screen.dart';
@@ -307,16 +307,7 @@ class _SettingsState extends State<Settings> {
                   leading: const Icon(Icons.bluetooth_disabled),
                   title: const Text('Disconnect from Bluetooth'),
                   onPressed: (context) async {
-                    widget.connection!.cancel();
-                    Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const ScanScreen(
-                          title: 'Ozone Swim v2',
-                        ),
-                      ),
-                      (Route<dynamic> route) => false,
-                    );
+                    Restart.restartApp();
                   }),
             ],
           ),
