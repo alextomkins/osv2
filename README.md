@@ -1,16 +1,27 @@
-# osv2
+# Ozone Swim v2
+Bluetooth Low Energy cross-platform mobile application designed to control Maytronics Ozone Swim v2 devices.
 
-A new Flutter project.
+[![made-with-flutter](https://img.shields.io/badge/Made%20with-Flutter-1f425f.svg)](https://flutter.dev/)
 
-## Getting Started
 
-This project is a starting point for a Flutter application.
+<img src = "screenshots/ss_ble_scan.png" width = "32%"><img src = "screenshots/ss_homepage_run.png" width = "32%"><img src = "screenshots/ss_settings.png" width = "32%">
 
-A few resources to get you started if this is your first Flutter project:
+## Installation
+Before you install this app, make sure that your phone supports bluetooth low energy (BLE).
+Almost all phones made after 2013 support this.
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+### Android
+The most current application APK is in the root directory of this git reprository.
+This APK can be download and transferred onto an Android device that is plugged in via USB.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+#### iOS
+This app currently hasn't been tested on iOS devices.
+
+## Features
+- Connect to Maytronics Ozone Swim v2 device via Bluetooth Low Energy
+- View and change device time
+- View and change timers
+- Change device run mode
+- View information about the connected modules
+- View and send developer information
+- Edit developer device configuration
